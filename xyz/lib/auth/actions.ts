@@ -108,7 +108,14 @@ export async function adminLogin(_prevState: AuthActionState, formData: FormData
   const session = await createSession(token, user.id)
   await setSessionCookie(token, session.expiresAt)
 
-  redirect('/admin')
+  // Deliberately NOT calling redirect('/admin') here. Server Action
+  // redirects don't reliably drive client-side navigation in this app's
+  // setup (the cookie/session write above always completes — that's why
+  // a manual refresh "fixes" it — but the follow-up navigation to /admin
+  // can silently fail to happen). Returning null (= no error) signals
+  // success to AdminLoginForm, which does the navigation itself with
+  // router.push()/router.refresh().
+  return null
 }
 
 export async function logout() {

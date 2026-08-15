@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { requireAdmin } from '@/lib/auth/admin'
 import {
   createProduct,
@@ -11,6 +10,7 @@ import {
   updateCategory,
   deleteCategory,
   setUserRole,
+  deleteUser,
 } from '@/lib/db/queries'
 import type { NewProduct, NewCategory, Role } from '@/lib/db/schema'
 import { slugify } from '@/lib/utils/slugify'
@@ -92,7 +92,10 @@ export async function createProductAction(
   }
 
   revalidateProductPaths()
-  redirect('/admin/products')
+  // No redirect() here — see the comment on adminLogin in
+  // lib/auth/actions.ts. ProductForm navigates to /admin/products itself
+  // once it sees this action resolve with no error.
+  return null
 }
 
 export async function updateProductAction(
@@ -114,7 +117,7 @@ export async function updateProductAction(
   }
 
   revalidateProductPaths()
-  redirect('/admin/products')
+  return null
 }
 
 export async function deleteProductAction(id: number): Promise<AdminActionState> {
@@ -166,7 +169,7 @@ export async function createCategoryAction(
   }
 
   revalidateCategoryPaths()
-  redirect('/admin/categories')
+  return null
 }
 
 export async function updateCategoryAction(
@@ -188,7 +191,7 @@ export async function updateCategoryAction(
   }
 
   revalidateCategoryPaths()
-  redirect('/admin/categories')
+  return null
 }
 
 export async function deleteCategoryAction(id: number): Promise<AdminActionState> {
@@ -223,6 +226,27 @@ export async function setUserRoleAction(id: number, role: Role): Promise<AdminAc
       return { error: 'This is the only remaining admin — promote someone else first.' }
     }
     return { error: 'Could not update this user. Please try again.' }
+  }
+
+  revalidatePath('/admin/users')
+  revalidatePath('/admin')
+  return null
+}
+
+export async function deleteUserAction(id: number): Promise<AdminActionState> {
+  const admin = await requireAdmin()
+
+  if (id === admin.id) {
+    return { error: 'You can\u2019t delete your own account.' }
+  }
+
+  try {
+    await deleteUser(id)
+  } catch (err) {
+    if (err instanceof Error && err.message === 'LAST_ADMIN') {
+      return { error: 'This is the only remaining admin — promote someone else first.' }
+    }
+    return { error: 'Could not delete this user. Please try again.' }
   }
 
   revalidatePath('/admin/users')

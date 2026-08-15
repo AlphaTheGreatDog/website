@@ -1,6 +1,8 @@
 import { getAllUsersAdmin } from '@/lib/db/queries'
 import { getCurrentUser } from '@/lib/auth/session'
+import { deleteUserAction } from '@/lib/admin/actions'
 import RoleToggleButton from '@/components/admin/RoleToggleButton'
+import DeleteButton from '@/components/admin/DeleteButton'
 
 export default async function AdminUsersPage() {
   const [users, currentUser] = await Promise.all([getAllUsersAdmin(), getCurrentUser()])
@@ -48,8 +50,14 @@ export default async function AdminUsersPage() {
                   {u.createdAt.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                 </td>
                 <td className="px-6 py-3">
-                  <div className="flex items-center justify-end">
+                  <div className="flex items-center justify-end gap-4">
                     <RoleToggleButton userId={u.id} role={u.role} />
+                    {u.id !== currentUser?.id && (
+                      <DeleteButton
+                        action={deleteUserAction.bind(null, u.id)}
+                        confirmMessage={`Delete ${u.email}? This can't be undone.`}
+                      />
+                    )}
                   </div>
                 </td>
               </tr>

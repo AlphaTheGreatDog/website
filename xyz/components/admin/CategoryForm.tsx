@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import type { AdminActionState } from '@/lib/admin/actions'
 import type { Category } from '@/lib/db/schema'
 import { slugify } from '@/lib/utils/slugify'
@@ -22,6 +23,19 @@ export default function CategoryForm({
   const [name, setName] = useState(category?.name ?? '')
   const [slug, setSlug] = useState(category?.slug ?? '')
   const [slugTouched, setSlugTouched] = useState(false)
+  const router = useRouter()
+
+  // The action no longer redirects itself (Server Action redirects weren't
+  // reliably navigating the client here) — once it resolves with no error,
+  // send the admin back to the list ourselves.
+  const wasPending = useRef(false)
+  useEffect(() => {
+    if (wasPending.current && !isPending && !state?.error) {
+      router.push('/admin/categories')
+      router.refresh()
+    }
+    wasPending.current = isPending
+  }, [isPending, state, router])
 
   const handleNameChange = (value: string) => {
     setName(value)

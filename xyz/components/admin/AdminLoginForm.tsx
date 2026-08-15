@@ -1,10 +1,25 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { adminLogin } from '@/lib/auth/actions'
 
 export default function AdminLoginForm() {
   const [state, formAction, isPending] = useActionState(adminLogin, null)
+  const router = useRouter()
+
+  // Tracks the previous isPending value so we can detect the exact
+  // "just finished, no error" transition and treat it as success — the
+  // server action no longer redirects itself (see lib/auth/actions.ts).
+  const wasPending = useRef(false)
+
+  useEffect(() => {
+    if (wasPending.current && !isPending && !state?.error) {
+      router.push('/admin')
+      router.refresh()
+    }
+    wasPending.current = isPending
+  }, [isPending, state, router])
 
   return (
     <form action={formAction} className="flex flex-col gap-6">

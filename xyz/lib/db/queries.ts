@@ -131,6 +131,23 @@ export async function setUserRole(id: number, role: Role) {
   return row
 }
 
+/**
+ * Deletes a user (their sessions and cart items cascade automatically —
+ * see the FK definitions in schema.ts). Refuses to delete the last
+ * remaining admin so the panel can't be locked out through the UI.
+ */
+export async function deleteUser(id: number) {
+  const target = await db.query.users.findFirst({ where: eq(users.id, id) })
+  if (target?.role === 'admin') {
+    const admins = await countAdmins()
+    if (admins <= 1) {
+      throw new Error('LAST_ADMIN')
+    }
+  }
+
+  await db.delete(users).where(eq(users.id, id))
+}
+
 // ===========================================================================
 // ADMIN — DASHBOARD
 // ===========================================================================

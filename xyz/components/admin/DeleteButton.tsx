@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 
 export default function DeleteButton({
@@ -14,13 +15,20 @@ export default function DeleteButton({
 }) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
   const handleClick = () => {
     if (!window.confirm(confirmMessage)) return
     setError(null)
     startTransition(async () => {
       const result = await action()
-      if (result?.error) setError(result.error)
+      if (result?.error) {
+        setError(result.error)
+      } else {
+        // Belt-and-suspenders: make sure the row actually disappears
+        // without needing a manual refresh.
+        router.refresh()
+      }
     })
   }
 
