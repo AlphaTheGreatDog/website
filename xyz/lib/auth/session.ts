@@ -43,11 +43,14 @@ export async function validateSessionToken(token: string): Promise<SessionValida
   }
 
   // Sliding expiration: push the expiry out when the session is getting
-  // close to expiring, so active users don't get logged out mid-use.
+  // close to expiring, so active users don't get logged out mid-use. Must
+  // also re-set the cookie itself — extending the DB row alone doesn't
+  // change the `expires` attribute already stored in the browser's cookie.
   if (Date.now() >= row.expiresAt.getTime() - RENEW_THRESHOLD_MS) {
     const newExpiresAt = new Date(Date.now() + SESSION_DURATION_MS)
     await db.update(sessions).set({ expiresAt: newExpiresAt }).where(eq(sessions.id, id))
     row.expiresAt = newExpiresAt
+    await setSessionCookie(token, newExpiresAt)
   }
 
   const { user, ...session } = row
@@ -60,14 +63,23 @@ export async function invalidateSession(token: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Cookie helpers — httpOnly so client JS can never read the token, secure in
-// production so it's never sent over a plain-HTTP connection to the VPS.
+// Cookie helpers — httpOnly so client JS can never read the token.
+//
+// `secure` is controlled by COOKIE_SECURE rather than assumed from
+// NODE_ENV, because a lot of VPS deployments serve over plain HTTP by IP
+// before a domain + TLS (nginx/certbot etc.) is set up. A cookie marked
+// `secure` is silently dropped by the browser on a non-HTTPS origin, which
+// breaks login in a very confusing way (login "succeeds" but the session
+// never comes back). Set COOKIE_SECURE=true once the site is served over
+// HTTPS.
 // ---------------------------------------------------------------------------
+const isSecureCookie = process.env.COOKIE_SECURE === 'true'
+
 export async function setSessionCookie(token: string, expiresAt: Date) {
   const store = await cookies()
   store.set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecureCookie,
     sameSite: 'lax',
     expires: expiresAt,
     path: '/',
@@ -78,7 +90,7 @@ export async function deleteSessionCookie() {
   const store = await cookies()
   store.set(SESSION_COOKIE_NAME, '', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecureCookie,
     sameSite: 'lax',
     maxAge: 0,
     path: '/',

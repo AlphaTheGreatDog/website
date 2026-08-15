@@ -22,19 +22,24 @@ export default function CartItemRow({ productId, title, imageUrl, price, quantit
     setError(null)
     startTransition(async () => {
       const result = await updateCartItemQuantity(productId, next)
+      if (result && 'authRequired' in result) {
+        router.push('/login')
+        return
+      }
       if (result?.error) {
         setError(result.error)
         return
       }
-      router.refresh()
     })
   }
 
   const handleRemove = () => {
     setError(null)
     startTransition(async () => {
-      await removeFromCart(productId)
-      router.refresh()
+      const result = await removeFromCart(productId)
+      if (result && 'authRequired' in result) {
+        router.push('/login')
+      }
     })
   }
 

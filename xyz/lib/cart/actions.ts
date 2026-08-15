@@ -1,6 +1,5 @@
 'use server'
 
-import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth/session'
 import {
@@ -10,17 +9,22 @@ import {
   setCartItemQuantity,
 } from '@/lib/db/queries'
 
-export type CartActionState = { error: string } | null
+// 'auth' is a distinct case from a plain error string: it tells the client
+// to navigate to /login itself. Calling redirect() from inside a server
+// action that's invoked as a plain async function (as these are, from
+// onClick handlers) rather than as a <form action> is unreliable — the
+// thrown NEXT_REDIRECT signal doesn't always reach the client cleanly and
+// can leave the calling UI stuck in a pending state. Returning a value and
+// letting the client call router.push() is the safe pattern here.
+export type CartActionState = { error: string } | { authRequired: true } | null
 
-/** Every mutation needs the signed-in user; bounces guests to login. */
-async function requireUser() {
-  const user = await getCurrentUser()
-  if (!user) redirect('/login')
-  return user
+async function getAuthedUser() {
+  return getCurrentUser()
 }
 
 export async function addToCart(productId: number, quantity: number = 1): Promise<CartActionState> {
-  const user = await requireUser()
+  const user = await getAuthedUser()
+  if (!user) return { authRequired: true }
 
   const product = await getProductById(productId)
   if (!product || !product.isActive) {
@@ -38,7 +42,8 @@ export async function addToCart(productId: number, quantity: number = 1): Promis
 }
 
 export async function updateCartItemQuantity(productId: number, quantity: number): Promise<CartActionState> {
-  const user = await requireUser()
+  const user = await getAuthedUser()
+  if (!user) return { authRequired: true }
 
   if (quantity > 0) {
     const product = await getProductById(productId)
@@ -53,7 +58,9 @@ export async function updateCartItemQuantity(productId: number, quantity: number
 }
 
 export async function removeFromCart(productId: number): Promise<CartActionState> {
-  const user = await requireUser()
+  const user = await getAuthedUser()
+  if (!user) return { authRequired: true }
+
   await removeCartItem(user.id, productId)
   revalidatePath('/', 'layout')
   return null

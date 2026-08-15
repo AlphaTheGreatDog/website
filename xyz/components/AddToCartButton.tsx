@@ -20,12 +20,15 @@ export default function AddToCartButton({
     setError(null)
     startTransition(async () => {
       const result = await addToCart(productId, 1)
+      if (result && 'authRequired' in result) {
+        router.push('/login')
+        return
+      }
       if (result?.error) {
         setError(result.error)
         return
       }
       setJustAdded(true)
-      router.refresh()
       setTimeout(() => setJustAdded(false), 1800)
     })
   }
