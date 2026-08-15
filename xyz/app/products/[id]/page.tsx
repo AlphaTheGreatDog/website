@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getProductById } from '@/lib/db/queries'
+import AddToCartButton from '@/components/AddToCartButton'
 
 export const revalidate = 60
 
@@ -48,13 +49,7 @@ export default async function ProductDetail({
         </p>
 
         {/* CTA */}
-        <button
-          type="button"
-          disabled={product.stock <= 0}
-          className="w-full bg-hybrid-ink text-white py-4 text-sm font-bold tracking-widest uppercase hover:bg-hybrid-ink-muted transition-colors rounded-sm mb-12 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {product.stock > 0 ? 'Add to Bag' : 'Out of Stock'}
-        </button>
+        <AddToCartButton productId={product.id} inStock={product.stock > 0} />
 
         {/* Minimal Accordion Info */}
         <div className="border-t border-hybrid-border">

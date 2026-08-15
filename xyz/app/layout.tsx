@@ -2,6 +2,7 @@ import './globals.css'
 import { Inter, Playfair_Display } from 'next/font/google'
 import Header from '@/components/Header'
 import { getCurrentUser } from '@/lib/auth/session'
+import { getCartItemCount } from '@/lib/db/queries'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
@@ -12,6 +13,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   const user = await getCurrentUser()
+  const cartCount = user ? await getCartItemCount(user.id) : 0
 
   return (
     <html lang="en">
@@ -20,7 +22,7 @@ export default async function RootLayout({
           Free Shipping on all U.S. orders
         </div>
 
-        <Header user={user ? { email: user.email, name: user.name } : null} />
+        <Header user={user ? { email: user.email, name: user.name } : null} cartCount={cartCount} />
 
         <main>{children}</main>
         

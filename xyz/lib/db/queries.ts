@@ -1,6 +1,6 @@
 import { and, asc, eq } from 'drizzle-orm'
 import { db } from './index'
-import { categories, products, type NewCategory, type NewProduct } from './schema'
+import { categories, products, cartItems, type NewCategory, type NewProduct } from './schema'
 
 // ===========================================================================
 // STOREFRONT READS (used by app/page.tsx today)
@@ -81,4 +81,69 @@ export async function updateCategory(id: number, data: Partial<NewCategory>) {
 
 export async function deleteCategory(id: number) {
   await db.delete(categories).where(eq(categories.id, id))
+}
+
+// ===========================================================================
+// CART
+// ===========================================================================
+
+/** Cart rows for a user, with product data attached, oldest-added first. */
+export async function getCartItemsForUser(userId: number) {
+  return db.query.cartItems.findMany({
+    where: eq(cartItems.userId, userId),
+    with: { product: true },
+    orderBy: asc(cartItems.createdAt),
+  })
+}
+
+/** Total item count for the header badge — cheap query, no product join. */
+export async function getCartItemCount(userId: number) {
+  const rows = await db
+    .select({ quantity: cartItems.quantity })
+    .from(cartItems)
+    .where(eq(cartItems.userId, userId))
+  return rows.reduce((sum, row) => sum + row.quantity, 0)
+}
+
+export async function getCartItem(userId: number, productId: number) {
+  return db.query.cartItems.findFirst({
+    where: and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)),
+  })
+}
+
+/** Adds a product to the cart, or increments quantity if it's already there. */
+export async function addOrIncrementCartItem(userId: number, productId: number, quantity: number) {
+  const existing = await getCartItem(userId, productId)
+
+  if (existing) {
+    const [row] = await db
+      .update(cartItems)
+      .set({ quantity: existing.quantity + quantity, updatedAt: new Date() })
+      .where(eq(cartItems.id, existing.id))
+      .returning()
+    return row
+  }
+
+  const [row] = await db.insert(cartItems).values({ userId, productId, quantity }).returning()
+  return row
+}
+
+export async function setCartItemQuantity(userId: number, productId: number, quantity: number) {
+  if (quantity <= 0) {
+    await db
+      .delete(cartItems)
+      .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)))
+    return null
+  }
+
+  const [row] = await db
+    .update(cartItems)
+    .set({ quantity, updatedAt: new Date() })
+    .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)))
+    .returning()
+  return row
+}
+
+export async function removeCartItem(userId: number, productId: number) {
+  await db.delete(cartItems).where(and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)))
 }

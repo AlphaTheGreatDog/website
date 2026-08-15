@@ -6,7 +6,13 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { logout } from '@/lib/auth/actions'
 
-export default function Header({ user }: { user: { email: string; name: string | null } | null }) {
+export default function Header({
+  user,
+  cartCount,
+}: {
+  user: { email: string; name: string | null } | null
+  cartCount: number
+}) {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -113,7 +119,7 @@ export default function Header({ user }: { user: { email: string; name: string |
 
         <Link href="/cart" className="relative hover:text-hybrid-ink-muted transition-colors flex items-center gap-2">
           <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
-          <span className="text-sm font-medium">0</span>
+          <span className="text-sm font-medium">{cartCount}</span>
         </Link>
       </div>
     </header>

@@ -7,6 +7,7 @@ import {
   integer,
   timestamp,
   boolean,
+  unique,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -89,6 +90,37 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 }))
 
 // ---------------------------------------------------------------------------
+// Cart items
+// ---------------------------------------------------------------------------
+export const cartItems = pgTable(
+  'cart_items',
+  {
+    id: serial('id').primaryKey(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    productId: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    quantity: integer('quantity').notNull().default(1),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => [unique('cart_items_user_product_unique').on(table.userId, table.productId)]
+)
+
+export const cartItemsRelations = relations(cartItems, ({ one }) => ({
+  user: one(users, {
+    fields: [cartItems.userId],
+    references: [users.id],
+  }),
+  product: one(products, {
+    fields: [cartItems.productId],
+    references: [products.id],
+  }),
+}))
+
+// ---------------------------------------------------------------------------
 // Inferred types — reuse these everywhere instead of hand-writing interfaces
 // ---------------------------------------------------------------------------
 export type Product = typeof products.$inferSelect
@@ -98,3 +130,5 @@ export type NewCategory = typeof categories.$inferInsert
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Session = typeof sessions.$inferSelect
+export type CartItem = typeof cartItems.$inferSelect
+export type NewCartItem = typeof cartItems.$inferInsert
