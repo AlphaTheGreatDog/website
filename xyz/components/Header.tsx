@@ -3,16 +3,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, ShoppingBag, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 
 export default function Header() {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
+  const pathname = usePathname()
+
+  // Check if user is currently on the login page
+  const isLoginPage = pathname === '/login'
 
   const user = { email: 'jane@example.com' }
 
-  // Firefox-safe click outside handler
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -50,36 +53,38 @@ export default function Header() {
           <Search className="w-5 h-5 stroke-[1.5]" />
         </button>
 
-        {/* Profile Dropdown Container */}
-        <div className="relative" ref={menuRef}>
-          <button 
-            type="button"
-            onClick={() => setIsProfileOpen((prev) => !prev)} 
-            className="hover:text-hybrid-ink-muted transition-colors flex items-center focus:outline-none cursor-pointer p-1"
-            aria-expanded={isProfileOpen}
-            aria-label="User account menu"
-          >
-            <User className="w-5 h-5 stroke-[1.5]" />
-          </button>
+        {/* Profile Dropdown Container (Hidden on /login) */}
+        {!isLoginPage && (
+          <div className="relative" ref={menuRef}>
+            <button 
+              type="button"
+              onClick={() => setIsProfileOpen((prev) => !prev)} 
+              className="hover:text-hybrid-ink-muted transition-colors flex items-center focus:outline-none cursor-pointer p-1"
+              aria-expanded={isProfileOpen}
+              aria-label="User account menu"
+            >
+              <User className="w-5 h-5 stroke-[1.5]" />
+            </button>
 
-          {/* Account Profile Popup */}
-          {isProfileOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-hybrid-surface border border-hybrid-border shadow-lg py-3 px-4 z-[100] flex flex-col gap-2 rounded-sm text-left">
-              <p className="text-xs text-hybrid-ink font-medium truncate pb-2 border-b border-hybrid-border">
-                {user.email}
-              </p>
+            {/* Account Profile Popup */}
+            {isProfileOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-hybrid-surface border border-hybrid-border shadow-lg py-3 px-4 z-[100] flex flex-col gap-2 rounded-sm text-left">
+                <p className="text-xs text-hybrid-ink font-medium truncate pb-2 border-b border-hybrid-border">
+                  {user.email}
+                </p>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors pt-1 w-full text-left cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                Log Out
-              </button>
-            </div>
-          )}
-        </div>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors pt-1 w-full text-left cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Log Out
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         <Link href="/cart" className="relative hover:text-hybrid-ink-muted transition-colors flex items-center gap-2">
           <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
