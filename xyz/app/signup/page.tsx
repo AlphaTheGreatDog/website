@@ -1,11 +1,15 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { signup } from '@/lib/auth/actions'
 
 export default function SignupPage() {
   const [state, formAction, isPending] = useActionState(signup, null)
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+
+  const mismatch = confirmPassword.length > 0 && password !== confirmPassword
 
   return (
     <div className="max-w-md mx-auto px-8 py-24">
@@ -61,14 +65,38 @@ export default function SignupPage() {
             required
             minLength={8}
             autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             className="border border-hybrid-border bg-hybrid-surface px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-hybrid-ink transition-colors"
             placeholder="At least 8 characters"
           />
         </div>
 
+        <div className="flex flex-col gap-2">
+          <label htmlFor="confirmPassword" className="text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted">
+            Confirm Password
+          </label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            type="password"
+            required
+            minLength={8}
+            autoComplete="new-password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            aria-invalid={mismatch}
+            className={`border bg-hybrid-surface px-4 py-3 text-sm rounded-sm focus:outline-none transition-colors ${
+              mismatch ? 'border-red-400 focus:border-red-500' : 'border-hybrid-border focus:border-hybrid-ink'
+            }`}
+            placeholder="Re-enter your password"
+          />
+          {mismatch && <p className="text-xs text-red-600">Passwords don&apos;t match.</p>}
+        </div>
+
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isPending || mismatch}
           className="w-full bg-hybrid-ink text-white py-3.5 text-sm font-bold tracking-widest uppercase hover:bg-hybrid-ink-muted transition-colors rounded-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isPending ? 'Creating Account…' : 'Create Account'}

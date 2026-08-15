@@ -21,6 +21,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export async function signup(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const email = String(formData.get('email') ?? '').trim().toLowerCase()
   const password = String(formData.get('password') ?? '')
+  const confirmPassword = String(formData.get('confirmPassword') ?? '')
   const name = String(formData.get('name') ?? '').trim()
 
   if (!EMAIL_RE.test(email)) {
@@ -28,6 +29,9 @@ export async function signup(_prevState: AuthActionState, formData: FormData): P
   }
   if (password.length < 8) {
     return { error: 'Password must be at least 8 characters.' }
+  }
+  if (password !== confirmPassword) {
+    return { error: 'Passwords don\u2019t match.' }
   }
 
   const existing = await getUserByEmail(email)
