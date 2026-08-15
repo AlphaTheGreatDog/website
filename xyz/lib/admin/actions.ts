@@ -30,7 +30,6 @@ const VALID_BADGES = ['', 'Best Seller', 'New', 'Award Winner']
 
 function parseProductForm(formData: FormData): { data: NewProduct } | { error: string } {
   const title = String(formData.get('title') ?? '').trim()
-  const slugInput = String(formData.get('slug') ?? '').trim()
   const description = String(formData.get('description') ?? '').trim()
   const priceRaw = String(formData.get('price') ?? '')
   const badge = String(formData.get('badge') ?? '')
@@ -38,6 +37,9 @@ function parseProductForm(formData: FormData): { data: NewProduct } | { error: s
   const categoryIdRaw = String(formData.get('categoryId') ?? '')
   const stockRaw = String(formData.get('stock') ?? '')
   const isActive = formData.get('isActive') === 'on'
+  const ingredients = String(formData.get('ingredients') ?? '').trim()
+  const howToUse = String(formData.get('howToUse') ?? '').trim()
+  const shippingReturns = String(formData.get('shippingReturns') ?? '').trim()
 
   if (!title) return { error: 'Title is required.' }
 
@@ -55,7 +57,11 @@ function parseProductForm(formData: FormData): { data: NewProduct } | { error: s
   return {
     data: {
       title,
-      slug: slugify(slugInput || title),
+      // The admin panel no longer exposes a slug field — nothing in the
+      // storefront routes on product slug (routing is by id), so it's
+      // just derived from the title to satisfy the DB's not-null/unique
+      // constraint without asking admins to fill in a value nobody uses.
+      slug: slugify(title),
       description: description || null,
       price: price.toFixed(2),
       badge: badge || null,
@@ -63,6 +69,9 @@ function parseProductForm(formData: FormData): { data: NewProduct } | { error: s
       categoryId,
       stock,
       isActive,
+      ingredients: ingredients || null,
+      howToUse: howToUse || null,
+      shippingReturns: shippingReturns || null,
     },
   }
 }
@@ -86,7 +95,7 @@ export async function createProductAction(
     await createProduct(parsed.data)
   } catch (err) {
     if (isPgError(err, PG_UNIQUE_VIOLATION)) {
-      return { error: 'A product with that slug already exists. Try a different title or slug.' }
+      return { error: 'A product with a matching title already exists. Try a different title.' }
     }
     return { error: 'Could not create product. Please try again.' }
   }
@@ -111,7 +120,7 @@ export async function updateProductAction(
     await updateProduct(id, parsed.data)
   } catch (err) {
     if (isPgError(err, PG_UNIQUE_VIOLATION)) {
-      return { error: 'A product with that slug already exists. Try a different title or slug.' }
+      return { error: 'A product with a matching title already exists. Try a different title.' }
     }
     return { error: 'Could not update product. Please try again.' }
   }

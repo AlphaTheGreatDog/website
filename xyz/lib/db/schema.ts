@@ -50,6 +50,11 @@ export const products = pgTable('products', {
     .notNull()
     .references(() => categories.id, { onDelete: 'restrict' }),
   stock: integer('stock').notNull().default(0),
+  // Content for the expandable info cards on the product detail page.
+  // Nullable — the page falls back to sensible default copy when empty.
+  ingredients: text('ingredients'),
+  howToUse: text('how_to_use'),
+  shippingReturns: text('shipping_returns'),
   // lets the admin dashboard hide a product without deleting it
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),

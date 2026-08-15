@@ -1,8 +1,14 @@
 import { notFound } from 'next/navigation'
-import { getProductById } from '@/lib/db/queries'
+import { getCartItem, getProductById } from '@/lib/db/queries'
+import { getCurrentUser } from '@/lib/auth/session'
 import AddToCartButton from '@/components/AddToCartButton'
+import ProductAccordion from '@/components/ProductAccordion'
 
-export const revalidate = 60
+// Stock changes whenever someone checks out or an admin edits it, so this
+// page can't sit behind a long ISR window — the whole point of task 2 is
+// that what's shown here (and checked before adding to cart) reflects the
+// *current* stock, not a value that might be up to a minute stale.
+export const revalidate = 0
 
 // Next.js 16: params is a Promise and must be awaited.
 export default async function ProductDetail({
@@ -17,11 +23,14 @@ export default async function ProductDetail({
     notFound()
   }
 
-  const product = await getProductById(productId)
+  const [product, user] = await Promise.all([getProductById(productId), getCurrentUser()])
 
   if (!product || !product.isActive) {
     notFound()
   }
+
+  const existingCartItem = user ? await getCartItem(user.id, productId) : null
+  const cartQuantity = existingCartItem?.quantity ?? 0
 
   return (
     <div className="max-w-7xl mx-auto px-8 py-16 flex flex-col lg:flex-row gap-16">
@@ -48,18 +57,38 @@ export default async function ProductDetail({
             'A thoughtfully made addition to your daily routine, crafted with quality materials and built to last.'}
         </p>
 
-        {/* CTA */}
-        <AddToCartButton productId={product.id} inStock={product.stock > 0} />
+        {/* Stock status */}
+        <p
+          className={`text-xs font-semibold tracking-widest uppercase mb-4 ${
+            product.stock <= 0
+              ? 'text-red-600'
+              : product.stock <= 5
+                ? 'text-amber-700'
+                : 'text-hybrid-ink-muted'
+          }`}
+        >
+          {product.stock <= 0
+            ? 'Out of stock'
+            : product.stock <= 5
+              ? `Only ${product.stock} left in stock`
+              : 'In stock'}
+        </p>
 
-        {/* Minimal Accordion Info */}
-        <div className="border-t border-hybrid-border">
-          {['Ingredients', 'How to Use', 'Shipping & Returns'].map((title, i) => (
-            <div key={i} className="border-b border-hybrid-border py-4 flex justify-between items-center cursor-pointer hover:opacity-70 transition-opacity">
-              <span className="font-serif text-lg">{title}</span>
-              <span className="text-xl font-light">+</span>
-            </div>
-          ))}
-        </div>
+        {/* CTA */}
+        <AddToCartButton
+          productId={product.id}
+          stock={product.stock}
+          initialCartQuantity={cartQuantity}
+        />
+
+        {/* Expandable info cards */}
+        <ProductAccordion
+          sections={[
+            { title: 'Ingredients', content: product.ingredients },
+            { title: 'How to Use', content: product.howToUse },
+            { title: 'Shipping & Returns', content: product.shippingReturns },
+          ]}
+        />
       </div>
     </div>
   )

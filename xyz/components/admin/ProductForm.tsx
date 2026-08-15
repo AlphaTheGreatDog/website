@@ -4,7 +4,6 @@ import { useActionState, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { AdminActionState } from '@/lib/admin/actions'
 import type { Category, Product } from '@/lib/db/schema'
-import { slugify } from '@/lib/utils/slugify'
 
 const BADGES = ['', 'Best Seller', 'New', 'Award Winner']
 
@@ -24,9 +23,6 @@ export default function ProductForm({
   submitLabel: string
 }) {
   const [state, formAction, isPending] = useActionState(action, null)
-  const [title, setTitle] = useState(product?.title ?? '')
-  const [slug, setSlug] = useState(product?.slug ?? '')
-  const [slugTouched, setSlugTouched] = useState(false)
   const router = useRouter()
 
   // The action no longer redirects itself (Server Action redirects weren't
@@ -40,11 +36,6 @@ export default function ProductForm({
     }
     wasPending.current = isPending
   }, [isPending, state, router])
-
-  const handleTitleChange = (value: string) => {
-    setTitle(value)
-    if (!slugTouched) setSlug(slugify(value))
-  }
 
   return (
     <form action={formAction} className="flex flex-col gap-6 max-w-2xl">
@@ -61,28 +52,10 @@ export default function ProductForm({
           name="title"
           type="text"
           required
-          value={title}
-          onChange={(e) => handleTitleChange(e.target.value)}
+          defaultValue={product?.title ?? ''}
           className={inputClass}
           placeholder="Restorative Serum"
         />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <label htmlFor="slug" className={labelClass}>Slug</label>
-        <input
-          id="slug"
-          name="slug"
-          type="text"
-          value={slug}
-          onChange={(e) => {
-            setSlugTouched(true)
-            setSlug(e.target.value)
-          }}
-          className={inputClass}
-          placeholder="restorative-serum"
-        />
-        <p className="text-xs text-hybrid-ink-muted">Auto-generated from the title unless you edit it.</p>
       </div>
 
       <div className="flex flex-col gap-2">
@@ -95,6 +68,49 @@ export default function ProductForm({
           className={inputClass}
           placeholder="A short description shown on the product page."
         />
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-hybrid-border pt-6">
+        <p className={labelClass}>Product Page Info Cards</p>
+        <p className="text-xs text-hybrid-ink-muted -mt-1">
+          Shown as expandable cards on the product page. Leave blank to fall back to default copy.
+        </p>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="ingredients" className={labelClass}>Ingredients</label>
+          <textarea
+            id="ingredients"
+            name="ingredients"
+            rows={3}
+            defaultValue={product?.ingredients ?? ''}
+            className={inputClass}
+            placeholder="Aqua, Glycerin, Niacinamide…"
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="howToUse" className={labelClass}>How to Use</label>
+          <textarea
+            id="howToUse"
+            name="howToUse"
+            rows={3}
+            defaultValue={product?.howToUse ?? ''}
+            className={inputClass}
+            placeholder="Apply a small amount to clean, dry skin morning and night."
+          />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="shippingReturns" className={labelClass}>Shipping &amp; Returns</label>
+          <textarea
+            id="shippingReturns"
+            name="shippingReturns"
+            rows={3}
+            defaultValue={product?.shippingReturns ?? ''}
+            className={inputClass}
+            placeholder="Free shipping on all U.S. orders. Returns accepted within 30 days."
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-6">

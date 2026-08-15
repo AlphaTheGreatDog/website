@@ -51,7 +51,7 @@ export default function Header({
       {/* Logo */}
       <div className="w-1/4">
         <Link href="/" className="font-sans text-xl tracking-[0.2em] font-bold uppercase hover:opacity-70 transition-opacity">
-          L U M I N A
+          X Y Z
         </Link>
       </div>
 

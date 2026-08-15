@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { getCurrentUser } from '@/lib/auth/session'
 import {
   addOrIncrementCartItem,
+  getCartItem,
   getProductById,
   removeCartItem,
   setCartItemQuantity,
@@ -26,12 +27,31 @@ export async function addToCart(productId: number, quantity: number = 1): Promis
   const user = await getAuthedUser()
   if (!user) return { authRequired: true }
 
+  // Always re-read stock fresh here rather than trusting whatever the
+  // client last rendered — the product page can be up to 60s stale (ISR)
+  // and someone else may have bought the last units in the meantime.
   const product = await getProductById(productId)
   if (!product || !product.isActive) {
     return { error: 'This product is no longer available.' }
   }
   if (product.stock <= 0) {
     return { error: 'This product is out of stock.' }
+  }
+
+  // Cap against what's *already* in this user's cart too — otherwise
+  // repeated clicks (or an already-full cart) could push the cart
+  // quantity past real stock, since addOrIncrementCartItem just adds on
+  // top of whatever's there.
+  const existing = await getCartItem(user.id, productId)
+  const alreadyInCart = existing?.quantity ?? 0
+  if (alreadyInCart + quantity > product.stock) {
+    const remaining = product.stock - alreadyInCart
+    return {
+      error:
+        remaining > 0
+          ? `Only ${remaining} more available — you already have ${alreadyInCart} in your bag.`
+          : `You already have the maximum available stock (${product.stock}) in your bag.`,
+    }
   }
 
   await addOrIncrementCartItem(user.id, productId, quantity)

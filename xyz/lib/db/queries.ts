@@ -29,13 +29,6 @@ export async function getActiveProductsWithCategory() {
   })
 }
 
-export async function getProductBySlug(slug: string) {
-  return db.query.products.findFirst({
-    where: and(eq(products.slug, slug), eq(products.isActive, true)),
-    with: { category: true },
-  })
-}
-
 // ===========================================================================
 // ADMIN DASHBOARD — not wired to any UI yet, but ready to import directly
 // into server actions / route handlers when the admin panel is built.
