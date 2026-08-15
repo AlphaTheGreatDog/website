@@ -88,14 +88,14 @@ export async function logout() {
 
   // Without this, the layout segment (which is where Header gets its
   // `user` prop from) can keep serving its cached, still-logged-in render
-  // to the client even after the cookie is cleared — the profile button
-  // reopens the account popup instead of switching to the sign-in icon,
-  // and pages that gate on auth (like /cart) end up demanding another
-  // login even though logout genuinely worked server-side.
-  //
-  // Deliberately not calling redirect() here: this action is invoked as a
-  // plain function from a button's onClick (like the cart actions), not
-  // via a <form action>, and redirect() thrown from that context doesn't
-  // always reach the client cleanly. The client does the navigation.
+  // to the client even after the cookie is cleared.
   revalidatePath('/', 'layout')
+
+  // This action is now wired up via a real <form action={logout}> submit
+  // in Header.tsx rather than being called as a plain onClick handler, so
+  // redirect() here is reliable — form-based Server Action invocations are
+  // the case Next.js's redirect() handling is actually built around.
+  // (A plain onClick + router.push() was flaky: it could leave the page
+  // showing stale, still-logged-in UI until a manual navigation happened.)
+  redirect('/login')
 }

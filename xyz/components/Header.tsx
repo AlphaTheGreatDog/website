@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Search, ShoppingBag, User, LogOut } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { logout } from '@/lib/auth/actions'
 
 export default function Header({
@@ -15,7 +15,6 @@ export default function Header({
 }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
-  const router = useRouter()
   const pathname = usePathname()
 
   // Check if user is currently on the login page
@@ -45,11 +44,7 @@ export default function Header({
     }
   }, [isProfileOpen])
 
-  const handleLogout = async () => {
-    setIsProfileOpen(false)
-    await logout()
-    router.push('/login')
-  }
+  const closeMenuOnSubmit = () => setIsProfileOpen(false)
 
   return (
     <header className="px-8 py-5 bg-hybrid-surface border-b border-hybrid-border flex items-center justify-between sticky top-0 z-50">
@@ -93,14 +88,15 @@ export default function Header({
                   {user.name || user.email}
                 </p>
 
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors pt-1 w-full text-left cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Log Out
-                </button>
+                <form action={logout} onSubmit={closeMenuOnSubmit}>
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors pt-1 w-full text-left cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    Log Out
+                  </button>
+                </form>
               </div>
             )}
           </div>
