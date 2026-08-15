@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  /* Hybrid Color Palette */
+  --color-hybrid-bg: #FAFAFA;       /* Very subtle off-white for softer contrast */
+  --color-hybrid-surface: #FFFFFF;  /* Pure white for cards/headers */
+  --color-hybrid-ink: #111111;      /* Near black for primary text */
+  --color-hybrid-ink-muted: #555555;/* Gray for secondary text */
+  --color-hybrid-espresso: #2D2422; /* Deep warm accent from Faire's lower section */
+  --color-hybrid-border: #E5E5E5;   /* Crisp, light borders */
+
+  /* Typography */
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+}

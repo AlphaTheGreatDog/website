@@ -1,0 +1,91 @@
+"use client"
+
+import { useState, useRef, useEffect } from 'react'
+import { Search, ShoppingBag, User, LogOut } from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+export default function Header() {
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
+
+  const user = { email: 'jane@example.com' }
+
+  // Firefox-safe click outside handler
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleLogout = () => {
+    setIsProfileOpen(false)
+    router.push('/login')
+  }
+
+  return (
+    <header className="px-8 py-5 bg-hybrid-surface border-b border-hybrid-border flex items-center justify-between sticky top-0 z-50">
+      {/* Logo */}
+      <div className="w-1/4">
+        <Link href="/" className="font-sans text-xl tracking-[0.2em] font-bold uppercase hover:opacity-70 transition-opacity">
+          L U M I N A
+        </Link>
+      </div>
+
+      {/* Navigation */}
+      <nav className="hidden md:flex flex-1 justify-center gap-10 text-[13px] font-semibold tracking-wider uppercase">
+        <Link href="/products" className="hover:text-hybrid-ink-muted transition-colors">The Shop</Link>
+        <Link href="/products" className="hover:text-hybrid-ink-muted transition-colors">Brands</Link>
+        <Link href="/products" className="hover:text-hybrid-ink-muted transition-colors">About Us</Link>
+      </nav>
+
+      {/* Utilities */}
+      <div className="flex items-center justify-end gap-6 w-1/4">
+        <button type="button" className="hover:text-hybrid-ink-muted transition-colors cursor-pointer">
+          <Search className="w-5 h-5 stroke-[1.5]" />
+        </button>
+
+        {/* Profile Dropdown Container */}
+        <div className="relative" ref={menuRef}>
+          <button 
+            type="button"
+            onClick={() => setIsProfileOpen((prev) => !prev)} 
+            className="hover:text-hybrid-ink-muted transition-colors flex items-center focus:outline-none cursor-pointer p-1"
+            aria-expanded={isProfileOpen}
+            aria-label="User account menu"
+          >
+            <User className="w-5 h-5 stroke-[1.5]" />
+          </button>
+
+          {/* Account Profile Popup */}
+          {isProfileOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-hybrid-surface border border-hybrid-border shadow-lg py-3 px-4 z-[100] flex flex-col gap-2 rounded-sm text-left">
+              <p className="text-xs text-hybrid-ink font-medium truncate pb-2 border-b border-hybrid-border">
+                {user.email}
+              </p>
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-xs font-semibold tracking-wider uppercase text-red-600 hover:text-red-700 transition-colors pt-1 w-full text-left cursor-pointer"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Log Out
+              </button>
+            </div>
+          )}
+        </div>
+
+        <Link href="/cart" className="relative hover:text-hybrid-ink-muted transition-colors flex items-center gap-2">
+          <ShoppingBag className="w-5 h-5 stroke-[1.5]" />
+          <span className="text-sm font-medium">0</span>
+        </Link>
+      </div>
+    </header>
+  )
+}
