@@ -2,16 +2,16 @@
 
 import { useActionState } from 'react'
 import Link from 'next/link'
-import { login } from '@/lib/auth/actions'
+import { signup } from '@/lib/auth/actions'
 
-export default function LoginPage() {
-  const [state, formAction, isPending] = useActionState(login, null)
+export default function SignupPage() {
+  const [state, formAction, isPending] = useActionState(signup, null)
 
   return (
     <div className="max-w-md mx-auto px-8 py-24">
       <div className="text-center mb-12">
-        <h1 className="font-serif text-4xl mb-3">Welcome back.</h1>
-        <p className="text-sm text-hybrid-ink-muted">Sign in to continue to your account.</p>
+        <h1 className="font-serif text-4xl mb-3">Create your account.</h1>
+        <p className="text-sm text-hybrid-ink-muted">Join to save your bag and track orders.</p>
       </div>
 
       <form action={formAction} className="flex flex-col gap-6">
@@ -20,6 +20,20 @@ export default function LoginPage() {
             {state.error}
           </p>
         )}
+
+        <div className="flex flex-col gap-2">
+          <label htmlFor="name" className="text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted">
+            Name
+          </label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            autoComplete="name"
+            className="border border-hybrid-border bg-hybrid-surface px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-hybrid-ink transition-colors"
+            placeholder="Jane Doe"
+          />
+        </div>
 
         <div className="flex flex-col gap-2">
           <label htmlFor="email" className="text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted">
@@ -37,22 +51,18 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <label htmlFor="password" className="text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted">
-              Password
-            </label>
-            <Link href="#" className="text-xs text-hybrid-ink-muted underline hover:text-hybrid-ink transition-colors">
-              Forgot?
-            </Link>
-          </div>
+          <label htmlFor="password" className="text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted">
+            Password
+          </label>
           <input
             id="password"
             name="password"
             type="password"
             required
-            autoComplete="current-password"
+            minLength={8}
+            autoComplete="new-password"
             className="border border-hybrid-border bg-hybrid-surface px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-hybrid-ink transition-colors"
-            placeholder="••••••••"
+            placeholder="At least 8 characters"
           />
         </div>
 
@@ -61,14 +71,14 @@ export default function LoginPage() {
           disabled={isPending}
           className="w-full bg-hybrid-ink text-white py-3.5 text-sm font-bold tracking-widest uppercase hover:bg-hybrid-ink-muted transition-colors rounded-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {isPending ? 'Signing In…' : 'Sign In'}
+          {isPending ? 'Creating Account…' : 'Create Account'}
         </button>
       </form>
 
       <p className="text-center text-sm text-hybrid-ink-muted mt-8">
-        Don&apos;t have an account?{' '}
-        <Link href="/signup" className="text-hybrid-ink underline hover:text-hybrid-ink-muted transition-colors">
-          Create one
+        Already have an account?{' '}
+        <Link href="/login" className="text-hybrid-ink underline hover:text-hybrid-ink-muted transition-colors">
+          Sign in
         </Link>
       </p>
     </div>

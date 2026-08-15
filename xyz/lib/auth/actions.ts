@@ -1,0 +1,83 @@
+'use server'
+
+import { redirect } from 'next/navigation'
+import { db } from '@/lib/db'
+import { users } from '@/lib/db/schema'
+import { hashPassword, verifyPassword } from './password'
+import {
+  createSession,
+  deleteSessionCookie,
+  generateSessionToken,
+  getSessionTokenFromCookie,
+  getUserByEmail,
+  invalidateSession,
+  setSessionCookie,
+} from './session'
+
+export type AuthActionState = { error: string } | null
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+export async function signup(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const password = String(formData.get('password') ?? '')
+  const name = String(formData.get('name') ?? '').trim()
+
+  if (!EMAIL_RE.test(email)) {
+    return { error: 'Enter a valid email address.' }
+  }
+  if (password.length < 8) {
+    return { error: 'Password must be at least 8 characters.' }
+  }
+
+  const existing = await getUserByEmail(email)
+  if (existing) {
+    return { error: 'An account with that email already exists.' }
+  }
+
+  const [user] = await db
+    .insert(users)
+    .values({ email, passwordHash: hashPassword(password), name: name || null })
+    .returning()
+
+  const token = generateSessionToken()
+  const session = await createSession(token, user.id)
+  await setSessionCookie(token, session.expiresAt)
+
+  redirect('/')
+}
+
+export async function login(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const password = String(formData.get('password') ?? '')
+
+  if (!email || !password) {
+    return { error: 'Enter your email and password.' }
+  }
+
+  const user = await getUserByEmail(email)
+  // Run verifyPassword even when there's no user, against a dummy hash, so
+  // the response time doesn't reveal whether the email exists.
+  const passwordOk = verifyPassword(
+    password,
+    user?.passwordHash ?? '0000000000000000000000000000000:00'
+  )
+
+  if (!user || !passwordOk) {
+    return { error: 'Incorrect email or password.' }
+  }
+
+  const token = generateSessionToken()
+  const session = await createSession(token, user.id)
+  await setSessionCookie(token, session.expiresAt)
+
+  redirect('/')
+}
+
+export async function logout() {
+  const token = await getSessionTokenFromCookie()
+  if (token) {
+    await invalidateSession(token)
+  }
+  await deleteSessionCookie()
+}
