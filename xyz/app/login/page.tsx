@@ -1,44 +1,87 @@
+'use client'
+
+import { useState } from 'react'
 import Link from 'next/link'
-import { getActiveProductsWithCategory, getCategories } from '@/lib/db/queries'
-import ProductGrid from '@/components/ProductGrid'
+import { useRouter } from 'next/navigation'
 
-// Re-fetch product data at most once a minute. Cheap on a single VPS and
-// means edits made in the (future) admin panel show up without a redeploy.
-export const revalidate = 60
+export default function LoginPage() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-export default async function Home() {
-  const [products, categories] = await Promise.all([
-    getActiveProductsWithCategory(),
-    getCategories(),
-  ])
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
 
-  const categoryNames = [...categories.map((c) => c.name), 'New Arrivals']
+    // TODO: wire this up to real authentication once there's a users table
+    // and a session mechanism (e.g. cookies-based sessions or an auth
+    // library). For now this just simulates success so the UI/flow can be
+    // reviewed, then sends the person home.
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    router.push('/')
+  }
 
   return (
-    <div className="flex flex-col w-full">
-      {/* Hero Section */}
-      <section className="relative w-full h-[75vh] flex items-center">
-        <div className="absolute inset-0 bg-[url('https://familydoctor.org/wp-content/uploads/2026/07/GettyImages-2271698553.jpg')] bg-cover bg-center">
-          <div className="absolute inset-0 bg-black/30"></div>
+    <div className="max-w-md mx-auto px-8 py-24">
+      <div className="text-center mb-12">
+        <h1 className="font-serif text-4xl mb-3">Welcome back.</h1>
+        <p className="text-sm text-hybrid-ink-muted">Sign in to continue to your account.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <label htmlFor="email" className="text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="border border-hybrid-border bg-hybrid-surface px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-hybrid-ink transition-colors"
+            placeholder="jane@example.com"
+          />
         </div>
 
-        <div className="relative z-10 p-8 md:p-16 max-w-2xl text-white">
-          <p className="font-sans text-xs tracking-[0.2em] uppercase mb-4">Curated Collection</p>
-          <h1 className="font-serif text-5xl md:text-6xl leading-tight mb-6">Discover your next daily essential.</h1>
-          <p className="font-sans text-lg mb-8 font-light text-white/90">Uniting the very best from emerging brands to deliver quality you can feel.</p>
-          <Link href="/products" className="inline-block bg-white text-hybrid-ink px-8 py-3.5 text-sm font-bold tracking-wider uppercase hover:bg-gray-100 transition-colors rounded-sm">
-            Start Exploring →
-          </Link>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted">
+              Password
+            </label>
+            <Link href="#" className="text-xs text-hybrid-ink-muted underline hover:text-hybrid-ink transition-colors">
+              Forgot?
+            </Link>
+          </div>
+          <input
+            id="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="border border-hybrid-border bg-hybrid-surface px-4 py-3 text-sm rounded-sm focus:outline-none focus:border-hybrid-ink transition-colors"
+            placeholder="••••••••"
+          />
         </div>
-      </section>
 
-      <section className="max-w-7xl mx-auto w-full px-8 py-16">
-        <div className="flex flex-col items-center mb-16">
-          <h2 className="font-serif text-4xl mb-8">Featured Categories</h2>
-        </div>
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-hybrid-ink text-white py-3.5 text-sm font-bold tracking-widest uppercase hover:bg-hybrid-ink-muted transition-colors rounded-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? 'Signing In…' : 'Sign In'}
+        </button>
+      </form>
 
-        <ProductGrid products={products} categoryNames={categoryNames} />
-      </section>
+      <p className="text-center text-sm text-hybrid-ink-muted mt-8">
+        Don&apos;t have an account?{' '}
+        <Link href="#" className="text-hybrid-ink underline hover:text-hybrid-ink-muted transition-colors">
+          Create one
+        </Link>
+      </p>
     </div>
   )
 }

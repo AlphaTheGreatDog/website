@@ -17,14 +17,28 @@ export default function Header() {
   const user = { email: 'jane@example.com' }
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    if (!isProfileOpen) return
+
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false)
       }
     }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === 'Escape') setIsProfileOpen(false)
+    }
+
+    // mousedown + touchstart covers both mouse and touch/mobile browsers
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('touchstart', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [isProfileOpen])
 
   const handleLogout = () => {
     setIsProfileOpen(false)
