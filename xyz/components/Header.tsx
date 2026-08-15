@@ -49,7 +49,6 @@ export default function Header({
     setIsProfileOpen(false)
     await logout()
     router.push('/login')
-    router.refresh()
   }
 
   return (

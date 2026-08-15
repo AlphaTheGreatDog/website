@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
 import { hashPassword, verifyPassword } from './password'
@@ -84,4 +85,17 @@ export async function logout() {
     await invalidateSession(token)
   }
   await deleteSessionCookie()
+
+  // Without this, the layout segment (which is where Header gets its
+  // `user` prop from) can keep serving its cached, still-logged-in render
+  // to the client even after the cookie is cleared — the profile button
+  // reopens the account popup instead of switching to the sign-in icon,
+  // and pages that gate on auth (like /cart) end up demanding another
+  // login even though logout genuinely worked server-side.
+  //
+  // Deliberately not calling redirect() here: this action is invoked as a
+  // plain function from a button's onClick (like the cart actions), not
+  // via a <form action>, and redirect() thrown from that context doesn't
+  // always reach the client cleanly. The client does the navigation.
+  revalidatePath('/', 'layout')
 }
