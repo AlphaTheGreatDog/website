@@ -1,5 +1,6 @@
 import {
   pgTable,
+  pgEnum,
   serial,
   varchar,
   text,
@@ -10,6 +11,15 @@ import {
   unique,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
+
+// ---------------------------------------------------------------------------
+// Roles
+// ---------------------------------------------------------------------------
+// A proper Postgres enum instead of a boolean `isAdmin` flag — leaves room
+// to add more roles later (e.g. 'staff') without another migration that
+// touches every existing row.
+export const roleEnum = pgEnum('role', ['customer', 'admin'])
+export type Role = (typeof roleEnum.enumValues)[number]
 
 // ---------------------------------------------------------------------------
 // Categories
@@ -61,6 +71,7 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   name: varchar('name', { length: 100 }),
+  role: roleEnum('role').notNull().default('customer'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 })
 

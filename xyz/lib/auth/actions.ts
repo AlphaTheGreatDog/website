@@ -79,6 +79,38 @@ export async function login(_prevState: AuthActionState, formData: FormData): Pr
   redirect('/')
 }
 
+export async function adminLogin(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
+  const email = String(formData.get('email') ?? '').trim().toLowerCase()
+  const password = String(formData.get('password') ?? '')
+
+  if (!email || !password) {
+    return { error: 'Enter your email and password.' }
+  }
+
+  const user = await getUserByEmail(email)
+  // Same dummy-hash trick as the customer login: verifyPassword always
+  // runs, so a wrong password and a role rejection resolve in the same
+  // rough time and this endpoint can't be used to enumerate admin emails.
+  const passwordOk = verifyPassword(
+    password,
+    user?.passwordHash ?? '0000000000000000000000000000000:00'
+  )
+
+  if (!user || !passwordOk) {
+    return { error: 'Incorrect email or password.' }
+  }
+
+  if (user.role !== 'admin') {
+    return { error: 'This account does not have admin access.' }
+  }
+
+  const token = generateSessionToken()
+  const session = await createSession(token, user.id)
+  await setSessionCookie(token, session.expiresAt)
+
+  redirect('/admin')
+}
+
 export async function logout() {
   const token = await getSessionTokenFromCookie()
   if (token) {
@@ -98,4 +130,15 @@ export async function logout() {
   // (A plain onClick + router.push() was flaky: it could leave the page
   // showing stale, still-logged-in UI until a manual navigation happened.)
   redirect('/login')
+}
+
+/** Same as logout(), just lands back on /admin/login instead of /login. */
+export async function adminLogout() {
+  const token = await getSessionTokenFromCookie()
+  if (token) {
+    await invalidateSession(token)
+  }
+  await deleteSessionCookie()
+  revalidatePath('/', 'layout')
+  redirect('/admin/login')
 }

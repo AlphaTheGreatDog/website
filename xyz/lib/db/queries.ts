@@ -1,6 +1,14 @@
-import { and, asc, eq } from 'drizzle-orm'
+import { and, asc, eq, lte, sql } from 'drizzle-orm'
 import { db } from './index'
-import { categories, products, cartItems, type NewCategory, type NewProduct } from './schema'
+import {
+  categories,
+  products,
+  cartItems,
+  users,
+  type NewCategory,
+  type NewProduct,
+  type Role,
+} from './schema'
 
 // ===========================================================================
 // STOREFRONT READS (used by app/page.tsx today)
@@ -65,6 +73,10 @@ export async function deleteProduct(id: number) {
   await db.delete(products).where(eq(products.id, id))
 }
 
+export async function getCategoryById(id: number) {
+  return db.query.categories.findFirst({ where: eq(categories.id, id) })
+}
+
 export async function createCategory(data: NewCategory) {
   const [row] = await db.insert(categories).values(data).returning()
   return row
@@ -81,6 +93,89 @@ export async function updateCategory(id: number, data: Partial<NewCategory>) {
 
 export async function deleteCategory(id: number) {
   await db.delete(categories).where(eq(categories.id, id))
+}
+
+// ===========================================================================
+// ADMIN — USERS
+// ===========================================================================
+
+export async function getAllUsersAdmin() {
+  return db.query.users.findMany({
+    orderBy: asc(users.createdAt),
+  })
+}
+
+export async function countAdmins() {
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(users)
+    .where(eq(users.role, 'admin'))
+  return row?.count ?? 0
+}
+
+/**
+ * Promotes/demotes a user. Refuses to demote the last remaining admin so
+ * an admin can't accidentally lock everyone (including themselves) out of
+ * the panel through the UI.
+ */
+export async function setUserRole(id: number, role: Role) {
+  if (role === 'customer') {
+    const admins = await countAdmins()
+    const target = await db.query.users.findFirst({ where: eq(users.id, id) })
+    if (target?.role === 'admin' && admins <= 1) {
+      throw new Error('LAST_ADMIN')
+    }
+  }
+
+  const [row] = await db.update(users).set({ role }).where(eq(users.id, id)).returning()
+  return row
+}
+
+// ===========================================================================
+// ADMIN — DASHBOARD
+// ===========================================================================
+
+const LOW_STOCK_THRESHOLD = 5
+
+export async function getDashboardStats() {
+  const [allProducts, categoryRows, allUsers, cartRows] = await Promise.all([
+    db
+      .select({ price: products.price, stock: products.stock, isActive: products.isActive })
+      .from(products),
+    db.select({ id: categories.id }).from(categories),
+    db.select({ role: users.role }).from(users),
+    db.query.cartItems.findMany({ with: { product: true } }),
+  ])
+
+  const activeProducts = allProducts.filter((p) => p.isActive)
+  const lowStockCount = allProducts.filter((p) => p.stock <= LOW_STOCK_THRESHOLD).length
+
+  // There's no orders/payments table yet, so there's no real "revenue" to
+  // report. These two figures are clearly-labeled estimates instead:
+  // the retail value currently sitting in stock, and the value currently
+  // sitting in shoppers' carts (an "about to convert" signal).
+  const inventoryValue = activeProducts.reduce((sum, p) => sum + Number(p.price) * p.stock, 0)
+  const cartValue = cartRows.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0)
+
+  return {
+    totalProducts: allProducts.length,
+    activeProducts: activeProducts.length,
+    totalCategories: categoryRows.length,
+    totalCustomers: allUsers.filter((u) => u.role === 'customer').length,
+    totalAdmins: allUsers.filter((u) => u.role === 'admin').length,
+    lowStockCount,
+    lowStockThreshold: LOW_STOCK_THRESHOLD,
+    inventoryValue,
+    cartValue,
+  }
+}
+
+export async function getLowStockProductsAdmin(threshold = LOW_STOCK_THRESHOLD) {
+  return db.query.products.findMany({
+    where: lte(products.stock, threshold),
+    with: { category: true },
+    orderBy: asc(products.stock),
+  })
 }
 
 // ===========================================================================
