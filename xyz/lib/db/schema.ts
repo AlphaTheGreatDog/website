@@ -61,12 +61,40 @@ export const products = pgTable('products', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 })
 
-export const productsRelations = relations(products, ({ one }) => ({
+export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(categories, {
     fields: [products.categoryId],
     references: [categories.id],
   }),
+  images: many(productImages),
 }))
+
+// ---------------------------------------------------------------------------
+// Product images
+// ---------------------------------------------------------------------------
+// `products.imageUrl` stays as the single "cover" image used everywhere a
+// product is shown as a small tile (grid, cart, etc.) — cheap, no join
+// needed. This table holds *additional* gallery images for the product
+// detail page only, ordered by `position`.
+export const productImages = pgTable('product_images', {
+  id: serial('id').primaryKey(),
+  productId: integer('product_id')
+    .notNull()
+    .references(() => products.id, { onDelete: 'cascade' }),
+  url: varchar('url', { length: 500 }).notNull(),
+  position: integer('position').notNull().default(0),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+})
+
+export const productImagesRelations = relations(productImages, ({ one }) => ({
+  product: one(products, {
+    fields: [productImages.productId],
+    references: [products.id],
+  }),
+}))
+
+export type ProductImage = typeof productImages.$inferSelect
+export type NewProductImage = typeof productImages.$inferInsert
 
 // ---------------------------------------------------------------------------
 // Contact info
@@ -86,6 +114,22 @@ export const contactInfo = pgTable('contact_info', {
 
 export type ContactInfo = typeof contactInfo.$inferSelect
 export type NewContactInfo = typeof contactInfo.$inferInsert
+
+// ---------------------------------------------------------------------------
+// About info
+// ---------------------------------------------------------------------------
+// Same singleton pattern as contactInfo (id is always 1) for the About Us
+// page's editable content.
+export const aboutInfo = pgTable('about_info', {
+  id: integer('id').primaryKey().default(1),
+  heading: varchar('heading', { length: 200 }).notNull().default('About Us'),
+  body: text('body'),
+  imageUrl: varchar('image_url', { length: 500 }),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export type AboutInfo = typeof aboutInfo.$inferSelect
+export type NewAboutInfo = typeof aboutInfo.$inferInsert
 
 // ---------------------------------------------------------------------------
 // Users

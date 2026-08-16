@@ -41,6 +41,14 @@ function slugify(title: string) {
   return title.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+// Deterministic placeholder photo per product — same slug always gets the
+// same image, so re-seeding doesn't shuffle photos around. Swap these out
+// for real product photography in the admin panel whenever you have it;
+// this is just so the storefront doesn't launch with empty gray boxes.
+function defaultImageUrl(slug: string) {
+  return `https://picsum.photos/seed/${slug}/800/800`
+}
+
 async function seed() {
   console.log('Seeding categories...')
   const insertedCategories = await db.insert(categories).values(categoryData).returning()
@@ -48,14 +56,18 @@ async function seed() {
 
   console.log('Seeding products...')
   await db.insert(products).values(
-    productData.map((p) => ({
-      title: p.title,
-      slug: slugify(p.title),
-      badge: p.badge || null,
-      price: '48.00',
-      categoryId: categoryIdByName.get(p.category)!,
-      stock: 100,
-    }))
+    productData.map((p) => {
+      const slug = slugify(p.title)
+      return {
+        title: p.title,
+        slug,
+        badge: p.badge || null,
+        price: '48.00',
+        categoryId: categoryIdByName.get(p.category)!,
+        stock: 100,
+        imageUrl: defaultImageUrl(slug),
+      }
+    })
   )
 
   console.log(`Done. Seeded ${insertedCategories.length} categories and ${productData.length} products.`)

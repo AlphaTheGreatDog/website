@@ -34,8 +34,11 @@ export default async function RootLayout({
               <h2 className="font-serif text-3xl mb-4">We&apos;re Xyz.</h2>
               <p className="text-white/80 font-light text-lg">Curating the best in modern lifestyle and wellness.</p>
             </div>
-            <div className="flex flex-col md:items-end justify-center">
-              <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-3">Support</p>
+            <div className="flex flex-col md:items-end justify-center gap-3">
+              <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-1">Company</p>
+              <Link href="/about" className="text-white/90 hover:text-white transition-colors underline underline-offset-4">
+                About Us
+              </Link>
               <Link href="/contact" className="text-white/90 hover:text-white transition-colors underline underline-offset-4">
                 Contact Us
               </Link>

@@ -6,12 +6,14 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  replaceProductImages,
   createCategory,
   updateCategory,
   deleteCategory,
   setUserRole,
   deleteUser,
   upsertContactInfo,
+  upsertAboutInfo,
 } from '@/lib/db/queries'
 import type { NewProduct, NewCategory, Role } from '@/lib/db/schema'
 import { slugify } from '@/lib/utils/slugify'
@@ -29,7 +31,9 @@ const VALID_BADGES = ['', 'Best Seller', 'New', 'Award Winner']
 // Products
 // ---------------------------------------------------------------------------
 
-function parseProductForm(formData: FormData): { data: NewProduct } | { error: string } {
+function parseProductForm(
+  formData: FormData
+): { data: NewProduct; galleryUrls: string[] } | { error: string } {
   const title = String(formData.get('title') ?? '').trim()
   const description = String(formData.get('description') ?? '').trim()
   const priceRaw = String(formData.get('price') ?? '')
@@ -41,6 +45,12 @@ function parseProductForm(formData: FormData): { data: NewProduct } | { error: s
   const ingredients = String(formData.get('ingredients') ?? '').trim()
   const howToUse = String(formData.get('howToUse') ?? '').trim()
   const shippingReturns = String(formData.get('shippingReturns') ?? '').trim()
+  // Repeatable "Additional Images" rows in ProductForm all share this name,
+  // so getAll collects every one of them in order.
+  const galleryUrls = formData
+    .getAll('galleryImageUrl')
+    .map((v) => String(v).trim())
+    .filter(Boolean)
 
   if (!title) return { error: 'Title is required.' }
 
@@ -74,6 +84,7 @@ function parseProductForm(formData: FormData): { data: NewProduct } | { error: s
       howToUse: howToUse || null,
       shippingReturns: shippingReturns || null,
     },
+    galleryUrls,
   }
 }
 
@@ -93,7 +104,8 @@ export async function createProductAction(
   if ('error' in parsed) return parsed
 
   try {
-    await createProduct(parsed.data)
+    const product = await createProduct(parsed.data)
+    await replaceProductImages(product.id, parsed.galleryUrls)
   } catch (err) {
     if (isPgError(err, PG_UNIQUE_VIOLATION)) {
       return { error: 'A product with a matching title already exists. Try a different title.' }
@@ -119,6 +131,7 @@ export async function updateProductAction(
 
   try {
     await updateProduct(id, parsed.data)
+    await replaceProductImages(id, parsed.galleryUrls)
   } catch (err) {
     if (isPgError(err, PG_UNIQUE_VIOLATION)) {
       return { error: 'A product with a matching title already exists. Try a different title.' }
@@ -299,6 +312,37 @@ export async function updateContactInfoAction(
 
   revalidatePath('/admin/contact')
   revalidatePath('/contact')
+  return null
+}
+
+// ---------------------------------------------------------------------------
+// About info
+// ---------------------------------------------------------------------------
+
+export async function updateAboutInfoAction(
+  _prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+
+  const heading = String(formData.get('heading') ?? '').trim()
+  const body = String(formData.get('body') ?? '').trim()
+  const imageUrl = String(formData.get('imageUrl') ?? '').trim()
+
+  if (!heading) return { error: 'Heading is required.' }
+
+  try {
+    await upsertAboutInfo({
+      heading,
+      body: body || null,
+      imageUrl: imageUrl || null,
+    })
+  } catch {
+    return { error: 'Could not save About Us page. Please try again.' }
+  }
+
+  revalidatePath('/admin/about')
+  revalidatePath('/about')
   return null
 }
 

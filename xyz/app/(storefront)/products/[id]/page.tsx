@@ -3,6 +3,7 @@ import { getCartItem, getProductById } from '@/lib/db/queries'
 import { getCurrentUser } from '@/lib/auth/session'
 import AddToCartButton from '@/components/AddToCartButton'
 import ProductAccordion from '@/components/ProductAccordion'
+import ProductGallery from '@/components/ProductGallery'
 import Reveal from '@/components/Reveal'
 
 // Stock changes whenever someone checks out or an admin edits it, so this
@@ -33,18 +34,18 @@ export default async function ProductDetail({
   const existingCartItem = user ? await getCartItem(user.id, productId) : null
   const cartQuantity = existingCartItem?.quantity ?? 0
 
+  // Cover image first, then any additional gallery images, deduped in case
+  // an admin also re-added the cover URL as one of the gallery rows.
+  const galleryUrls = product.images?.map((img) => img.url) ?? []
+  const allImages = [product.imageUrl, ...galleryUrls].filter(
+    (url, index, arr): url is string => Boolean(url) && arr.indexOf(url) === index
+  )
+
   return (
     <div className="max-w-7xl mx-auto px-8 py-16 flex flex-col lg:flex-row gap-16">
       {/* Left: Gallery */}
       <Reveal className="w-full lg:w-1/2">
-        <div className="w-full aspect-square bg-hybrid-surface border border-hybrid-border p-8 flex items-center justify-center">
-          {product.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.imageUrl} alt={product.title} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full bg-gray-100"></div>
-          )}
-        </div>
+        <ProductGallery images={allImages} title={product.title} />
       </Reveal>
 
       {/* Right: Details (Root Science Typography) */}

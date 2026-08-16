@@ -2,8 +2,9 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Plus, X } from 'lucide-react'
 import type { AdminActionState } from '@/lib/admin/actions'
-import type { Category, Product } from '@/lib/db/schema'
+import type { Category, Product, ProductImage } from '@/lib/db/schema'
 
 const BADGES = ['', 'Best Seller', 'New', 'Award Winner']
 
@@ -19,11 +20,17 @@ export default function ProductForm({
 }: {
   action: (state: AdminActionState, formData: FormData) => Promise<AdminActionState>
   categories: Category[]
-  product?: Product
+  product?: Product & { images?: ProductImage[] }
   submitLabel: string
 }) {
   const [state, formAction, isPending] = useActionState(action, null)
   const router = useRouter()
+  // Additional gallery image URLs, beyond the single cover Image URL below.
+  // Kept as local state (not defaultValue-driven inputs) so rows can be
+  // added/removed dynamically before submit.
+  const [galleryUrls, setGalleryUrls] = useState<string[]>(
+    product?.images?.map((img) => img.url) ?? []
+  )
 
   // The action no longer redirects itself (Server Action redirects weren't
   // reliably navigating the client here) — once it resolves with no error,
@@ -182,6 +189,50 @@ export default function ProductForm({
           className={inputClass}
           placeholder="https://…"
         />
+        <p className="text-xs text-hybrid-ink-muted">
+          The cover image — shown in product grids, cart, and as the first photo on the product page.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-hybrid-border pt-6">
+        <p className={labelClass}>Additional Images</p>
+        <p className="text-xs text-hybrid-ink-muted -mt-1">
+          Extra photos for the product page gallery (shown after the cover image above).
+        </p>
+
+        {galleryUrls.map((url, index) => (
+          <div key={index} className="flex gap-2">
+            <input
+              type="url"
+              name="galleryImageUrl"
+              value={url}
+              onChange={(e) => {
+                const next = [...galleryUrls]
+                next[index] = e.target.value
+                setGalleryUrls(next)
+              }}
+              className={inputClass}
+              placeholder="https://…"
+            />
+            <button
+              type="button"
+              onClick={() => setGalleryUrls(galleryUrls.filter((_, i) => i !== index))}
+              className="flex-shrink-0 px-3 border border-hybrid-border rounded-sm hover:border-red-400 hover:text-red-600 transition-colors cursor-pointer"
+              aria-label="Remove image"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={() => setGalleryUrls([...galleryUrls, ''])}
+          className="self-start flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase text-hybrid-ink-muted hover:text-hybrid-ink transition-colors cursor-pointer"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Add Image
+        </button>
       </div>
 
       <label className="flex items-center gap-3 cursor-pointer">

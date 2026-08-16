@@ -6,9 +6,12 @@ import {
   cartItems,
   users,
   contactInfo,
+  aboutInfo,
+  productImages,
   type NewCategory,
   type NewProduct,
   type NewContactInfo,
+  type NewAboutInfo,
   type Role,
 } from './schema'
 
@@ -46,7 +49,10 @@ export async function getAllProductsAdmin() {
 export async function getProductById(id: number) {
   return db.query.products.findFirst({
     where: eq(products.id, id),
-    with: { category: true },
+    with: {
+      category: true,
+      images: { orderBy: asc(productImages.position) },
+    },
   })
 }
 
@@ -66,6 +72,18 @@ export async function updateProduct(id: number, data: Partial<NewProduct>) {
 
 export async function deleteProduct(id: number) {
   await db.delete(products).where(eq(products.id, id))
+}
+
+/**
+ * Replaces a product's full gallery (in addition to the cover `imageUrl`)
+ * with the given list, in order. Called after create/update — simpler and
+ * safer than diffing individual rows for what's just a handful of URLs.
+ */
+export async function replaceProductImages(productId: number, urls: string[]) {
+  await db.delete(productImages).where(eq(productImages.productId, productId))
+  const clean = urls.map((url) => url.trim()).filter(Boolean)
+  if (clean.length === 0) return
+  await db.insert(productImages).values(clean.map((url, index) => ({ productId, url, position: index })))
 }
 
 export async function getCategoryById(id: number) {
@@ -271,6 +289,28 @@ export async function upsertContactInfo(data: Omit<NewContactInfo, 'id'>) {
     .values({ id: 1, ...data })
     .onConflictDoUpdate({
       target: contactInfo.id,
+      set: { ...data, updatedAt: new Date() },
+    })
+    .returning()
+  return row
+}
+
+// ===========================================================================
+// ABOUT INFO
+// ===========================================================================
+
+/** Reads the singleton about-info row. Returns null until an admin has ever saved it. */
+export async function getAboutInfo() {
+  return db.query.aboutInfo.findFirst({ where: eq(aboutInfo.id, 1) })
+}
+
+/** Creates or updates the singleton about-info row (id is always 1). */
+export async function upsertAboutInfo(data: Omit<NewAboutInfo, 'id'>) {
+  const [row] = await db
+    .insert(aboutInfo)
+    .values({ id: 1, ...data })
+    .onConflictDoUpdate({
+      target: aboutInfo.id,
       set: { ...data, updatedAt: new Date() },
     })
     .returning()
