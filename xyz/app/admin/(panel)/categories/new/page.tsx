@@ -4,8 +4,8 @@ import CategoryForm from '@/components/admin/CategoryForm'
 export default function NewCategoryPage() {
   return (
     <div>
-      <div className="mb-10">
-        <h1 className="font-serif text-3xl mb-1">New Category</h1>
+      <div className="mb-6 sm:mb-10">
+        <h1 className="font-serif text-2xl sm:text-3xl mb-1">New Category</h1>
         <p className="text-sm text-hybrid-ink-muted">Add a new category to the catalog.</p>
       </div>
 

@@ -120,7 +120,7 @@ export default function ProductForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="flex flex-col gap-2">
           <label htmlFor="price" className={labelClass}>Price (USD)</label>
           <input
@@ -152,7 +152,7 @@ export default function ProductForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="flex flex-col gap-2">
           <label htmlFor="categoryId" className={labelClass}>Category</label>
           <select

@@ -64,7 +64,7 @@ export default function ContactForm({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div className="flex flex-col gap-2">
           <label htmlFor="email" className={labelClass}>Email</label>
           <input
