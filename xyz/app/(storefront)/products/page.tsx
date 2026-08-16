@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getActiveProductsWithCategory, getCategories } from '@/lib/db/queries'
+import Reveal from '@/components/Reveal'
 
 export const revalidate = 60
 
@@ -61,29 +62,31 @@ export default async function ProductListing({
 
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
-            {filteredProducts.map((item) => (
-              <Link href={`/products/${item.id}`} key={item.id} className="group flex flex-col cursor-pointer">
-                <div className="w-full aspect-square bg-hybrid-surface border border-hybrid-border mb-4 relative overflow-hidden flex items-center justify-center">
-                  {item.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-100"></div>
-                  )}
+            {filteredProducts.map((item, index) => (
+              <Reveal key={item.id} delay={(index % 6) * 70}>
+                <Link href={`/products/${item.id}`} className="group flex flex-col cursor-pointer">
+                  <div className="w-full aspect-square bg-hybrid-surface border border-hybrid-border mb-4 relative overflow-hidden flex items-center justify-center">
+                    {item.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.imageUrl}
+                        alt={item.title}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-100"></div>
+                    )}
 
-                  {item.badge && (
-                    <div className="absolute top-4 right-4 bg-hybrid-ink text-white text-[10px] uppercase tracking-wider font-bold w-14 h-14 rounded-full flex items-center justify-center text-center p-1 leading-tight">
-                      {item.badge}
-                    </div>
-                  )}
-                </div>
-                <h4 className="font-serif text-lg text-hybrid-ink text-center">{item.title}</h4>
-                <p className="text-hybrid-ink-muted text-sm text-center mt-1">${Number(item.price).toFixed(2)}</p>
-              </Link>
+                    {item.badge && (
+                      <div className="absolute top-4 right-4 bg-hybrid-ink text-white text-[10px] uppercase tracking-wider font-bold w-14 h-14 rounded-full flex items-center justify-center text-center p-1 leading-tight">
+                        {item.badge}
+                      </div>
+                    )}
+                  </div>
+                  <h4 className="font-serif text-lg text-hybrid-ink text-center">{item.title}</h4>
+                  <p className="text-hybrid-ink-muted text-sm text-center mt-1">${Number(item.price).toFixed(2)}</p>
+                </Link>
+              </Reveal>
             ))}
           </div>
         ) : (

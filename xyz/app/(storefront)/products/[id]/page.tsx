@@ -3,6 +3,7 @@ import { getCartItem, getProductById } from '@/lib/db/queries'
 import { getCurrentUser } from '@/lib/auth/session'
 import AddToCartButton from '@/components/AddToCartButton'
 import ProductAccordion from '@/components/ProductAccordion'
+import Reveal from '@/components/Reveal'
 
 // Stock changes whenever someone checks out or an admin edits it, so this
 // page can't sit behind a long ISR window — the whole point of task 2 is
@@ -35,7 +36,7 @@ export default async function ProductDetail({
   return (
     <div className="max-w-7xl mx-auto px-8 py-16 flex flex-col lg:flex-row gap-16">
       {/* Left: Gallery */}
-      <div className="w-full lg:w-1/2">
+      <Reveal className="w-full lg:w-1/2">
         <div className="w-full aspect-square bg-hybrid-surface border border-hybrid-border p-8 flex items-center justify-center">
           {product.imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -44,10 +45,10 @@ export default async function ProductDetail({
             <div className="w-full h-full bg-gray-100"></div>
           )}
         </div>
-      </div>
+      </Reveal>
 
       {/* Right: Details (Root Science Typography) */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center">
+      <Reveal delay={150} className="w-full lg:w-1/2 flex flex-col justify-center">
         <p className="text-xs tracking-widest uppercase text-hybrid-ink-muted mb-4">{product.category.name}</p>
         <h1 className="font-serif text-4xl lg:text-5xl mb-4">{product.title}</h1>
         <p className="text-xl mb-8">${Number(product.price).toFixed(2)}</p>
@@ -89,7 +90,7 @@ export default async function ProductDetail({
             { title: 'Shipping & Returns', content: product.shippingReturns },
           ]}
         />
-      </div>
+      </Reveal>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getActiveProductsWithCategory, getCategories } from '@/lib/db/queries'
 import ProductGrid from '@/components/ProductGrid'
+import Reveal from '@/components/Reveal'
 
 // Re-fetch product data at most once a minute. Cheap on a single VPS and
 // means edits made in the (future) admin panel show up without a redeploy.
@@ -22,20 +23,20 @@ export default async function Home() {
           <div className="absolute inset-0 bg-black/30"></div>
         </div>
 
-        <div className="relative z-10 p-8 md:p-16 max-w-2xl text-white">
+        <Reveal className="relative z-10 p-8 md:p-16 max-w-2xl text-white">
           <p className="font-sans text-xs tracking-[0.2em] uppercase mb-4">Curated Collection</p>
           <h1 className="font-serif text-5xl md:text-6xl leading-tight mb-6">Discover your next daily essential.</h1>
           <p className="font-sans text-lg mb-8 font-light text-white/90">Uniting the very best from emerging brands to deliver quality you can feel.</p>
           <Link href="/products" className="inline-block bg-white text-hybrid-ink px-8 py-3.5 text-sm font-bold tracking-wider uppercase hover:bg-gray-100 transition-colors rounded-sm">
             Start Exploring →
           </Link>
-        </div>
+        </Reveal>
       </section>
 
       <section className="max-w-7xl mx-auto w-full px-8 py-16">
-        <div className="flex flex-col items-center mb-16">
+        <Reveal className="flex flex-col items-center mb-16">
           <h2 className="font-serif text-4xl mb-8">Featured Categories</h2>
-        </div>
+        </Reveal>
 
         <ProductGrid products={products} categoryNames={categoryNames} />
       </section>

@@ -2,6 +2,7 @@ import '../globals.css'
 import { Inter, Playfair_Display } from 'next/font/google'
 import Link from 'next/link'
 import Header from '@/components/Header'
+import Reveal from '@/components/Reveal'
 import { getCurrentUser } from '@/lib/auth/session'
 import { getCartItemCount } from '@/lib/db/queries'
 
@@ -28,7 +29,7 @@ export default async function RootLayout({
         <main>{children}</main>
         
         <footer className="bg-hybrid-espresso text-white py-16 px-8 mt-24">
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+          <Reveal className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
             <div>
               <h2 className="font-serif text-3xl mb-4">We&apos;re Xyz.</h2>
               <p className="text-white/80 font-light text-lg">Curating the best in modern lifestyle and wellness.</p>
@@ -39,7 +40,7 @@ export default async function RootLayout({
                 Contact Us
               </Link>
             </div>
-          </div>
+          </Reveal>
         </footer>
       </body>
     </html>
