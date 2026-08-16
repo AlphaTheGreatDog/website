@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Package, Tags, Users } from 'lucide-react'
+import { LayoutDashboard, Package, Tags, Users, Mail } from 'lucide-react'
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/categories', label: 'Categories', icon: Tags },
   { href: '/admin/users', label: 'Users', icon: Users },
+  { href: '/admin/contact', label: 'Contact Us', icon: Mail },
 ]
 
 export default function AdminSidebar() {

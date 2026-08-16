@@ -1,6 +1,6 @@
 import 'dotenv/config'
 import { db } from '../lib/db'
-import { categories, products } from '../lib/db/schema'
+import { categories, products, contactInfo } from '../lib/db/schema'
 
 const categoryData = [
   { name: 'Skincare', slug: 'skincare' },
@@ -59,6 +59,21 @@ async function seed() {
   )
 
   console.log(`Done. Seeded ${insertedCategories.length} categories and ${productData.length} products.`)
+
+  console.log('Seeding contact info...')
+  await db
+    .insert(contactInfo)
+    .values({
+      id: 1,
+      heading: 'Get in Touch',
+      message: "We'd love to hear from you. Reach out with any questions about orders, products, or anything else.",
+      email: 'hello@xyz.com',
+      phone: '(555) 123-4567',
+      address: '123 Market Street, San Francisco, CA 94103',
+    })
+    .onConflictDoNothing()
+
+  console.log('Done seeding contact info.')
   process.exit(0)
 }
 

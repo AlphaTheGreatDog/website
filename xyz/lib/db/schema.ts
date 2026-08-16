@@ -69,6 +69,25 @@ export const productsRelations = relations(products, ({ one }) => ({
 }))
 
 // ---------------------------------------------------------------------------
+// Contact info
+// ---------------------------------------------------------------------------
+// A singleton row (id is always 1) holding the editable content shown on
+// the storefront's Contact Us page. Modeled as a table rather than a
+// hardcoded constant so admins can update it without a redeploy.
+export const contactInfo = pgTable('contact_info', {
+  id: integer('id').primaryKey().default(1),
+  heading: varchar('heading', { length: 200 }).notNull().default('Get in Touch'),
+  message: text('message'),
+  email: varchar('email', { length: 255 }),
+  phone: varchar('phone', { length: 50 }),
+  address: text('address'),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+})
+
+export type ContactInfo = typeof contactInfo.$inferSelect
+export type NewContactInfo = typeof contactInfo.$inferInsert
+
+// ---------------------------------------------------------------------------
 // Users
 // ---------------------------------------------------------------------------
 export const users = pgTable('users', {

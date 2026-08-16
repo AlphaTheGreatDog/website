@@ -11,6 +11,7 @@ import {
   deleteCategory,
   setUserRole,
   deleteUser,
+  upsertContactInfo,
 } from '@/lib/db/queries'
 import type { NewProduct, NewCategory, Role } from '@/lib/db/schema'
 import { slugify } from '@/lib/utils/slugify'
@@ -260,6 +261,44 @@ export async function deleteUserAction(id: number): Promise<AdminActionState> {
 
   revalidatePath('/admin/users')
   revalidatePath('/admin')
+  return null
+}
+
+// ---------------------------------------------------------------------------
+// Contact info
+// ---------------------------------------------------------------------------
+
+export async function updateContactInfoAction(
+  _prevState: AdminActionState,
+  formData: FormData
+): Promise<AdminActionState> {
+  await requireAdmin()
+
+  const heading = String(formData.get('heading') ?? '').trim()
+  const message = String(formData.get('message') ?? '').trim()
+  const email = String(formData.get('email') ?? '').trim()
+  const phone = String(formData.get('phone') ?? '').trim()
+  const address = String(formData.get('address') ?? '').trim()
+
+  if (!heading) return { error: 'Heading is required.' }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return { error: 'Enter a valid email address.' }
+  }
+
+  try {
+    await upsertContactInfo({
+      heading,
+      message: message || null,
+      email: email || null,
+      phone: phone || null,
+      address: address || null,
+    })
+  } catch {
+    return { error: 'Could not save contact info. Please try again.' }
+  }
+
+  revalidatePath('/admin/contact')
+  revalidatePath('/contact')
   return null
 }
 

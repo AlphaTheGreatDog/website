@@ -12,7 +12,7 @@ export default async function AdminPanelLayout({ children }: { children: React.R
       {/* Sidebar */}
       <aside className="w-64 flex-shrink-0 bg-hybrid-espresso text-white flex flex-col py-8">
         <Link href="/admin" className="px-8 mb-10 block">
-          <p className="font-sans text-lg tracking-[0.2em] font-bold uppercase text-white">L U M I N A</p>
+          <p className="font-sans text-lg tracking-[0.2em] font-bold uppercase text-white">X Y Z</p>
           <p className="text-[10px] tracking-[0.3em] uppercase text-white/40 mt-1">Admin Panel</p>
         </Link>
 

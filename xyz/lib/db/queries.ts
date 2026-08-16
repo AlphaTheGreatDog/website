@@ -5,8 +5,10 @@ import {
   products,
   cartItems,
   users,
+  contactInfo,
   type NewCategory,
   type NewProduct,
+  type NewContactInfo,
   type Role,
 } from './schema'
 
@@ -251,4 +253,26 @@ export async function setCartItemQuantity(userId: number, productId: number, qua
 
 export async function removeCartItem(userId: number, productId: number) {
   await db.delete(cartItems).where(and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)))
+}
+
+// ===========================================================================
+// CONTACT INFO
+// ===========================================================================
+
+/** Reads the singleton contact-info row. Returns null until an admin has ever saved it. */
+export async function getContactInfo() {
+  return db.query.contactInfo.findFirst({ where: eq(contactInfo.id, 1) })
+}
+
+/** Creates or updates the singleton contact-info row (id is always 1). */
+export async function upsertContactInfo(data: Omit<NewContactInfo, 'id'>) {
+  const [row] = await db
+    .insert(contactInfo)
+    .values({ id: 1, ...data })
+    .onConflictDoUpdate({
+      target: contactInfo.id,
+      set: { ...data, updatedAt: new Date() },
+    })
+    .returning()
+  return row
 }

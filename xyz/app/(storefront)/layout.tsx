@@ -1,5 +1,6 @@
 import '../globals.css'
 import { Inter, Playfair_Display } from 'next/font/google'
+import Link from 'next/link'
 import Header from '@/components/Header'
 import { getCurrentUser } from '@/lib/auth/session'
 import { getCartItemCount } from '@/lib/db/queries'
@@ -31,6 +32,12 @@ export default async function RootLayout({
             <div>
               <h2 className="font-serif text-3xl mb-4">We&apos;re Xyz.</h2>
               <p className="text-white/80 font-light text-lg">Curating the best in modern lifestyle and wellness.</p>
+            </div>
+            <div className="flex flex-col md:items-end justify-center">
+              <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-3">Support</p>
+              <Link href="/contact" className="text-white/90 hover:text-white transition-colors underline underline-offset-4">
+                Contact Us
+              </Link>
             </div>
           </div>
         </footer>
