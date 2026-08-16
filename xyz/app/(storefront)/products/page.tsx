@@ -26,7 +26,7 @@ export default async function ProductListing({
     : undefined
 
   return (
-    <div className="max-w-7xl mx-auto px-8 py-16 flex flex-col md:flex-row gap-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-16 flex flex-col md:flex-row gap-8 md:gap-16">
       {/* Root Science Minimal Sidebar */}
       <aside className="w-full md:w-56 flex-shrink-0">
         <h2 className="font-sans text-xs tracking-widest uppercase font-bold mb-8">Filter By</h2>

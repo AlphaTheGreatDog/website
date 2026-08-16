@@ -14,7 +14,7 @@ export default async function AboutPage() {
     "We're a small team obsessed with the everyday essentials — sourcing thoughtfully made goods from independent makers and bringing them together in one place."
 
   return (
-    <div className="max-w-5xl mx-auto px-8 py-20">
+    <div className="max-w-5xl mx-auto px-4 sm:px-8 py-14 sm:py-20">
       <Reveal className="text-center mb-16">
         <p className="text-xs tracking-widest uppercase text-hybrid-ink-muted mb-4">Our Story</p>
         <h1 className="font-serif text-4xl md:text-5xl">{heading}</h1>

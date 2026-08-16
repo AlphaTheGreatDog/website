@@ -44,7 +44,7 @@ export default async function ProductDetail({
   )
 
   return (
-    <div className="max-w-7xl mx-auto px-8 py-16 flex flex-col lg:flex-row gap-16">
+    <div className="max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-16 flex flex-col lg:flex-row gap-10 lg:gap-16">
       {/* Left: Gallery */}
       <Reveal className="w-full lg:w-1/2">
         <ProductGallery images={allImages} title={product.title} />

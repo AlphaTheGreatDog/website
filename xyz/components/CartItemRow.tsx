@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { removeFromCart, updateCartItemQuantity } from '@/lib/cart/actions'
 
 type CartItemRowProps = {
@@ -43,18 +44,36 @@ export default function CartItemRow({ productId, title, imageUrl, price, quantit
     })
   }
 
+  const productHref = `/products/${productId}`
+
   return (
-    <div className="flex gap-6 items-center border-b border-hybrid-border pb-8">
-      <div className="w-24 h-32 bg-hybrid-surface border border-hybrid-border flex-shrink-0 overflow-hidden">
-        {imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
-        ) : null}
+    <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 sm:items-center border-b border-hybrid-border pb-8">
+      <div className="flex gap-4 sm:contents">
+        <Link
+          href={productHref}
+          className="w-20 h-28 sm:w-24 sm:h-32 bg-hybrid-surface border border-hybrid-border flex-shrink-0 overflow-hidden hover:opacity-80 transition-opacity"
+          aria-label={`View ${title}`}
+        >
+          {imageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
+          ) : null}
+        </Link>
+
+        <div className="flex-1 sm:hidden">
+          <Link href={productHref} className="hover:opacity-70 transition-opacity">
+            <h3 className="font-serif text-xl">{title}</h3>
+          </Link>
+          <p className="text-sm text-hybrid-ink-muted mt-1">${Number(price).toFixed(2)} each</p>
+          <p className="font-sans text-base mt-2">${(Number(price) * quantity).toFixed(2)}</p>
+        </div>
       </div>
 
       <div className="flex-1">
-        <h3 className="font-serif text-xl">{title}</h3>
-        <p className="text-sm text-hybrid-ink-muted mt-1">${Number(price).toFixed(2)} each</p>
+        <Link href={productHref} className="hidden sm:inline-block hover:opacity-70 transition-opacity">
+          <h3 className="font-serif text-xl">{title}</h3>
+        </Link>
+        <p className="hidden sm:block text-sm text-hybrid-ink-muted mt-1">${Number(price).toFixed(2)} each</p>
 
         <div className="flex items-center gap-3 mt-4">
           <div className="flex items-center border border-hybrid-border rounded-sm">
@@ -92,7 +111,7 @@ export default function CartItemRow({ productId, title, imageUrl, price, quantit
         {error && <p className="text-xs text-red-600 mt-2">{error}</p>}
       </div>
 
-      <div className="font-sans text-lg">${(Number(price) * quantity).toFixed(2)}</div>
+      <div className="hidden sm:block font-sans text-lg">${(Number(price) * quantity).toFixed(2)}</div>
     </div>
   )
 }

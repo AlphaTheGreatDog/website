@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(login, null)
 
   return (
-    <div className="max-w-md mx-auto px-8 py-24">
+    <div className="max-w-md mx-auto px-4 sm:px-8 py-16 sm:py-24">
       <div className="text-center mb-12">
         <h1 className="font-serif text-4xl mb-3">Welcome back.</h1>
         <p className="text-sm text-hybrid-ink-muted">Sign in to continue to your account.</p>

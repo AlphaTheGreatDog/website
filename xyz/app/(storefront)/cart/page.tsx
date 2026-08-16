@@ -8,7 +8,7 @@ export default async function Cart() {
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto px-8 py-24 text-center">
+      <div className="max-w-md mx-auto px-4 sm:px-8 py-24 text-center">
         <h1 className="font-serif text-4xl mb-4">Your Shopping Bag</h1>
         <p className="text-sm text-hybrid-ink-muted mb-8">Sign in to see what&apos;s in your bag.</p>
         <Link
@@ -25,8 +25,8 @@ export default async function Cart() {
   const subtotal = items.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0)
 
   return (
-    <div className="max-w-4xl mx-auto px-8 py-16">
-      <h1 className="font-serif text-4xl text-center mb-12 border-b border-hybrid-border pb-6">Your Shopping Bag</h1>
+    <div className="max-w-4xl mx-auto px-4 sm:px-8 py-10 sm:py-16">
+      <h1 className="font-serif text-3xl sm:text-4xl text-center mb-10 sm:mb-12 border-b border-hybrid-border pb-6">Your Shopping Bag</h1>
 
       {items.length === 0 ? (
         <div className="text-center py-16">
@@ -62,9 +62,12 @@ export default async function Cart() {
                 <span>${subtotal.toFixed(2)}</span>
               </div>
               <p className="text-sm text-hybrid-ink-muted mb-8 text-right">Shipping and taxes calculated at checkout.</p>
-              <button className="w-full bg-hybrid-ink text-white py-4 text-sm font-bold tracking-widest uppercase hover:bg-hybrid-ink-muted transition-colors rounded-sm">
+              <Link
+                href="/checkout"
+                className="block w-full text-center bg-hybrid-ink text-white py-4 text-sm font-bold tracking-widest uppercase hover:bg-hybrid-ink-muted transition-colors rounded-sm"
+              >
                 Checkout
-              </button>
+              </Link>
             </div>
           </div>
         </>

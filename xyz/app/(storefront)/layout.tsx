@@ -28,11 +28,11 @@ export default async function RootLayout({
 
         <main>{children}</main>
         
-        <footer className="bg-hybrid-espresso text-white py-16 px-8 mt-24">
-          <Reveal className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
+        <footer className="bg-hybrid-espresso text-white py-12 sm:py-16 px-4 sm:px-8 mt-24">
+          <Reveal className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
             <div>
-              <h2 className="font-serif text-3xl mb-4">We&apos;re Xyz.</h2>
-              <p className="text-white/80 font-light text-lg">Curating the best in modern lifestyle and wellness.</p>
+              <h2 className="font-serif text-2xl sm:text-3xl mb-4">We&apos;re Xyz.</h2>
+              <p className="text-white/80 font-light text-base sm:text-lg">Curating the best in modern lifestyle and wellness.</p>
             </div>
             <div className="flex flex-col md:items-end justify-center gap-3">
               <p className="text-xs font-semibold tracking-widest uppercase text-white/50 mb-1">Company</p>
