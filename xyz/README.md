@@ -1,5 +1,17 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Contact form emails
+
+The Contact Us page's query form emails every admin user (`role = 'admin'`) via [Resend](https://resend.com) when a visitor submits it. Add these to your `.env`:
+
+```
+RESEND_API_KEY=re_xxxxxxxxx
+CONTACT_FROM_EMAIL=notifications@yourdomain.com
+```
+
+- `RESEND_API_KEY` — required. Without it the form shows a friendly error and logs a warning instead of sending.
+- `CONTACT_FROM_EMAIL` — optional. Must be on a domain verified in your Resend dashboard for production sends; defaults to Resend's shared `onboarding@resend.dev` address for local testing.
+
 ## Getting Started
 
 First, run the development server:

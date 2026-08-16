@@ -59,6 +59,7 @@ export default function Header({
       <nav className="hidden md:flex flex-1 justify-center gap-10 text-[13px] font-semibold tracking-wider uppercase">
         <Link href="/" className="hover:text-hybrid-ink-muted transition-colors">Home</Link>
         <Link href="/products" className="hover:text-hybrid-ink-muted transition-colors">Shop</Link>
+        <Link href="/about" className="hover:text-hybrid-ink-muted transition-colors">About Us</Link>
         <Link href="/contact" className="hover:text-hybrid-ink-muted transition-colors">Contact Us</Link>
       </nav>
 

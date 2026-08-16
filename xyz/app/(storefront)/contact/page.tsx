@@ -2,6 +2,7 @@ import { Mail, Phone, MapPin } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { getContactInfo } from '@/lib/db/queries'
 import Reveal from '@/components/Reveal'
+import ContactForm from '@/components/ContactForm'
 
 // Editable from the admin panel, so this shouldn't sit behind a long
 // cache window — a saved change should show up on next load.
@@ -69,6 +70,18 @@ export default async function ContactPage() {
           Contact details haven&apos;t been added yet — check back soon.
         </p>
       )}
+
+      <Reveal className="mt-20 pt-16 border-t border-hybrid-border">
+        <div className="text-center mb-10">
+          <p className="text-xs tracking-widest uppercase text-hybrid-ink-muted mb-4">Send a Message</p>
+          <h2 className="font-serif text-3xl mb-4">Have a question?</h2>
+          <p className="text-hybrid-ink-muted leading-relaxed max-w-xl mx-auto">
+            Fill out the form below and our team will get back to you shortly.
+          </p>
+        </div>
+
+        <ContactForm />
+      </Reveal>
     </div>
   )
 }

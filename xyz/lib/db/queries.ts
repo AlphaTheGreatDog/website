@@ -118,6 +118,15 @@ export async function getAllUsersAdmin() {
   })
 }
 
+/** Emails of every admin user — used to notify the team of new contact-form queries. */
+export async function getAdminEmails() {
+  const rows = await db
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.role, 'admin'))
+  return rows.map((row) => row.email)
+}
+
 export async function countAdmins() {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
