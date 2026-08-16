@@ -36,8 +36,10 @@ export default async function ProductDetail({
 
   // Cover image first, then any additional gallery images, deduped in case
   // an admin also re-added the cover URL as one of the gallery rows.
-  const galleryUrls = product.images?.map((img) => img.url) ?? []
-  const allImages = [product.imageUrl, ...galleryUrls].filter(
+  // Trimmed defensively — a URL saved with stray whitespace would otherwise
+  // dedupe incorrectly or slip past the Boolean() check inconsistently.
+  const galleryUrls = product.images?.map((img) => img.url.trim()) ?? []
+  const allImages = [product.imageUrl?.trim(), ...galleryUrls].filter(
     (url, index, arr): url is string => Boolean(url) && arr.indexOf(url) === index
   )
 

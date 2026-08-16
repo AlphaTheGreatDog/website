@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
 
 export default function ProductGallery({ images, title }: { images: string[]; title: string }) {
   const [selected, setSelected] = useState(0)
-  const trackRef = useRef<HTMLDivElement>(null)
+  // Tracks which slide indices failed to load, so a single bad URL shows an
+  // inline broken-image state instead of taking down the whole carousel.
+  const [failed, setFailed] = useState<Set<number>>(new Set())
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([])
 
   // Touch-swipe tracking on the main slide.
@@ -13,18 +15,22 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
   const touchDeltaX = useRef(0)
 
   const count = images.length
+  // Clamp in case `images` shrinks (e.g. after an admin edit) while a later
+  // index was still selected.
+  const activeIndex = count === 0 ? 0 : Math.min(selected, count - 1)
 
   const goTo = (index: number) => {
+    if (count === 0) return
     setSelected(((index % count) + count) % count)
   }
-  const goPrev = () => goTo(selected - 1)
-  const goNext = () => goTo(selected + 1)
+  const goPrev = () => goTo(activeIndex - 1)
+  const goNext = () => goTo(activeIndex + 1)
 
   // Keep the active thumbnail scrolled into view as selection changes
   // (e.g. via arrow keys) so it isn't hidden off the edge of the strip.
   useEffect(() => {
-    thumbRefs.current[selected]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
-  }, [selected])
+    thumbRefs.current[activeIndex]?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' })
+  }, [activeIndex])
 
   if (count === 0) {
     return (
@@ -63,11 +69,12 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
     touchDeltaX.current = 0
   }
 
+  const currentFailed = failed.has(activeIndex)
+
   return (
     <div>
       {/* Main slide */}
       <div
-        ref={trackRef}
         role="region"
         aria-roledescription="carousel"
         aria-label={`${title} images`}
@@ -78,14 +85,24 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
         onTouchEnd={handleTouchEnd}
         className="relative w-full aspect-square bg-hybrid-surface border border-hybrid-border p-8 flex items-center justify-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-hybrid-ink/30 select-none"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          key={selected}
-          src={images[selected]}
-          alt={`${title} — image ${selected + 1} of ${count}`}
-          draggable={false}
-          className="w-full h-full object-cover transition-opacity duration-300 pointer-events-none"
-        />
+        {currentFailed ? (
+          <div className="flex flex-col items-center gap-2 text-hybrid-ink-muted">
+            <ImageOff className="w-8 h-8 stroke-[1.5]" />
+            <p className="text-xs">Image failed to load</p>
+          </div>
+        ) : (
+          // Same <img> element persists across slides (no key), so we only
+          // ever swap its `src` — avoids an unmount/remount flash that can
+          // briefly show a broken-image state when switching slides.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={images[activeIndex]}
+            alt={`${title} — image ${activeIndex + 1} of ${count}`}
+            draggable={false}
+            onError={() => setFailed((prev) => new Set(prev).add(activeIndex))}
+            className="w-full h-full object-cover pointer-events-none"
+          />
+        )}
 
         {count > 1 && (
           <>
@@ -108,7 +125,7 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
 
             {/* Slide counter */}
             <div className="absolute bottom-3 right-3 px-2.5 py-1 rounded-full bg-hybrid-ink/80 text-white text-[11px] font-semibold tracking-wider tabular-nums">
-              {selected + 1} / {count}
+              {activeIndex + 1} / {count}
             </div>
 
             {/* Dots (mobile-friendly alternative to the thumbnail strip) */}
@@ -119,9 +136,9 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
                   type="button"
                   onClick={() => goTo(index)}
                   aria-label={`Go to image ${index + 1}`}
-                  aria-current={selected === index}
+                  aria-current={activeIndex === index}
                   className={`w-1.5 h-1.5 rounded-full transition-colors cursor-pointer ${
-                    selected === index ? 'bg-hybrid-ink' : 'bg-hybrid-ink/30'
+                    activeIndex === index ? 'bg-hybrid-ink' : 'bg-hybrid-ink/30'
                   }`}
                 />
               ))}
@@ -142,13 +159,25 @@ export default function ProductGallery({ images, title }: { images: string[]; ti
               type="button"
               onClick={() => goTo(index)}
               aria-label={`View image ${index + 1} of ${count}`}
-              aria-current={selected === index}
+              aria-current={activeIndex === index}
               className={`w-16 h-16 flex-shrink-0 border bg-hybrid-surface p-1.5 rounded-sm transition-colors cursor-pointer ${
-                selected === index ? 'border-hybrid-ink' : 'border-hybrid-border hover:border-hybrid-ink-muted'
+                activeIndex === index ? 'border-hybrid-ink' : 'border-hybrid-border hover:border-hybrid-ink-muted'
               }`}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" draggable={false} className="w-full h-full object-cover rounded-sm" />
+              {failed.has(index) ? (
+                <div className="w-full h-full flex items-center justify-center text-hybrid-ink-muted">
+                  <ImageOff className="w-4 h-4 stroke-[1.5]" />
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={src}
+                  alt=""
+                  draggable={false}
+                  onError={() => setFailed((prev) => new Set(prev).add(index))}
+                  className="w-full h-full object-cover rounded-sm"
+                />
+              )}
             </button>
           ))}
         </div>
